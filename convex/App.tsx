@@ -19,3 +19,14 @@ export default function App() {
     </div>
   );
 }
+
+function App() {
+  return (
+    <div style={{ textAlign: "center", marginTop: 100 }}>
+      <h1>Hello z Verven app na Convexu! 🚀</h1>
+      <p>Frontend a backend jsou připraveny.</p>
+    </div>
+  );
+}
+
+export default App;

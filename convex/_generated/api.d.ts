@@ -16,6 +16,7 @@ import type {
 import type * as App from "../App.js";
 import type * as addVillage from "../addVillage.js";
 import type * as getVillages from "../getVillages.js";
+import type * as src_main from "../src/main.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   App: typeof App;
   addVillage: typeof addVillage;
   getVillages: typeof getVillages;
+  "src/main": typeof src_main;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
