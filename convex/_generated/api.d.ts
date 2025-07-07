@@ -13,9 +13,9 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as App from "../App.js";
 import type * as addVillage from "../addVillage.js";
 import type * as getVillages from "../getVillages.js";
+import type * as src_App from "../src/App.js";
 import type * as src_main from "../src/main.js";
 
 /**
@@ -27,9 +27,9 @@ import type * as src_main from "../src/main.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  App: typeof App;
   addVillage: typeof addVillage;
   getVillages: typeof getVillages;
+  "src/App": typeof src_App;
   "src/main": typeof src_main;
 }>;
 export declare const api: FilterApi<
