@@ -1,5 +1,8 @@
-{
-  "dependencies": {
-    "convex": "^1.25.2"
-  }
+"scripts": {
+  "convex": "npx convex dev",
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "dev": "vite dev",
+  "dev": "react-scripts start"
 }
