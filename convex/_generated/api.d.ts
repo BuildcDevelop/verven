@@ -15,8 +15,7 @@ import type {
 } from "convex/server";
 import type * as addVillage from "../addVillage.js";
 import type * as getVillages from "../getVillages.js";
-import type * as src_App from "../src/App.js";
-import type * as src_main from "../src/main.js";
+import type * as tasks from "../tasks.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,8 +28,7 @@ import type * as src_main from "../src/main.js";
 declare const fullApi: ApiFromModules<{
   addVillage: typeof addVillage;
   getVillages: typeof getVillages;
-  "src/App": typeof src_App;
-  "src/main": typeof src_main;
+  tasks: typeof tasks;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

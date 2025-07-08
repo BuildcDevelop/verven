@@ -1,8 +1,16 @@
-"scripts": {
-  "convex": "npx convex dev",
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "dev": "vite dev",
-  "dev": "react-scripts start"
+{
+  "name": "verven",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "convex": "npx convex dev"
+  },
+  "dependencies": {
+    "convex": "^1.4.0",
+    "next": "13.5.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
 }

@@ -1,6 +1,6 @@
-import { query } from "convex/_generated/server";
+import { mutation, query } from "./_generated/server";
 
-export default query(async ({ db }) => {
+export const addVillage = mutation(async ({ db }, args) => {
   // Vrátí všechny záznamy z kolekce "villages"
   return await db.query("villages").collect();
 });

@@ -1,17 +1,8 @@
-import { mutation } from "convex/_generated/server";
-import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 
-export default mutation({
-  args: {
-    name: v.string(),
-    owner: v.string(),
-  },
-  handler: async ({ db }, args) => {
-    const id = await db.insert("villages", {
-      name: args.name,
-      owner: args.owner,
-      createdAt: Date.now(),
-    });
-    return id;
-  },
+export const addVillage = mutation(async ({ db }, args) => {
+  // kód pouze pro server (ne z frontendu)
 });
+// Tvoje logika tady
+// Např.:
+// return await db.insert("villages", { ...args });
