@@ -39,8 +39,8 @@ const HomePage = () => {
           <h1 className="homepage__title">Verven</h1>
           
           <p className="homepage__subtitle">
-            Vstupte do světa středověké strategie, kde budujete své léno, 
-            spravujete vesnice a vedete svůj lid k prosperitě
+            Vstupte do světa středověké strategie, kde budujete svou vlastní říši, 
+            spravujete osady a vedete svůj lid k prosperitě
           </p>
           
           {/* Akční tlačítka */}
@@ -68,7 +68,7 @@ const HomePage = () => {
         <div className="homepage__features">
           <div className="homepage__feature">
             <Shield className="homepage__feature-icon" size={48} />
-            <h3 className="homepage__feature-title">Stavba léna</h3>
+            <h3 className="homepage__feature-title">Stavba osady</h3>
             <p className="homepage__feature-description">Budujte a rozvíjejte své středověké sídlo</p>
           </div>
           
@@ -80,7 +80,7 @@ const HomePage = () => {
           
           <div className="homepage__feature">
             <Users className="homepage__feature-icon" size={48} />
-            <h3 className="homepage__feature-title">Správa vesnic</h3>
+            <h3 className="homepage__feature-title">Správa lén</h3>
             <p className="homepage__feature-description">Spravujte obyvatele a suroviny</p>
           </div>
         </div>
@@ -109,7 +109,7 @@ const HomePage = () => {
             
             {buildInfoExpanded && (
               <div className="homepage__build-content">
-                <h4 className="homepage__build-changes-title">Novinky v tomto buildu:</h4>
+                <h4 className="homepage__build-changes-title">Novinky v aktuálně vydaném buildu:</h4>
                 <ul className="homepage__build-changes">
                   {currentBuild.changes.map((change, index) => (
                     <li key={index} className="homepage__build-change">
