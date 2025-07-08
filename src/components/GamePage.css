@@ -1,20 +1,47 @@
 /* src/components/GamePage.css */
-/* Kompletní styly pro GamePage - náhrada za Tailwind */
+/* GamePage ve stejném stylu jako HomePage - zelené barvy */
 
 /* Reset a základní styly */
 .game-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #581c87 0%, #1e40af 50%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%);
+  position: relative;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Overlay pattern stejný jako HomePage */
+.game-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.game-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 30h-12v12h12V30zm-18 0h-12v12h12V30zm18-18h-12v12h12V12zm-18 0h-12v12h12V12z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.1;
+  z-index: 2;
 }
 
 /* Loading obrazovka */
 .game-loading {
   min-height: 100vh;
-  background-color: #111827;
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 10;
 }
 
 .game-loading__text {
@@ -26,6 +53,8 @@
 .game-header {
   background-color: rgba(0, 0, 0, 0.3);
   padding: 1rem;
+  position: relative;
+  z-index: 10;
 }
 
 .game-header__container {
@@ -44,11 +73,12 @@
   font-size: 1.5rem;
   font-weight: bold;
   margin: 0 0 0.25rem 0;
+  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .game-header__welcome {
   font-size: 0.875rem;
-  opacity: 0.8;
+  color: #a7f3d0;
   margin: 0;
 }
 
@@ -65,7 +95,7 @@
 
 .game-header__stat {
   font-size: 0.875rem;
-  opacity: 0.8;
+  color: #a7f3d0;
   margin: 0.125rem 0;
 }
 
@@ -73,14 +103,18 @@
   background-color: #dc2626;
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .game-header__logout:hover {
   background-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
 /* Main content */
@@ -88,6 +122,17 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* Card styles - stejné jako HomePage */
+.game-card {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* Menu section */
@@ -96,12 +141,9 @@
 }
 
 .game-menu__card {
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border-radius: 0.5rem;
-  padding: 2rem;
   max-width: 28rem;
   margin: 0 auto;
+  padding: 2rem;
 }
 
 .game-menu__title {
@@ -109,6 +151,7 @@
   font-weight: bold;
   color: white;
   margin: 0 0 1.5rem 0;
+  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .game-menu__buttons {
@@ -123,12 +166,9 @@
 }
 
 .game-playing__card {
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border-radius: 0.5rem;
-  padding: 2rem;
   max-width: 48rem;
   margin: 0 auto;
+  padding: 2rem;
 }
 
 .game-playing__title {
@@ -136,10 +176,12 @@
   font-weight: bold;
   color: white;
   margin: 0 0 1.5rem 0;
+  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .game-area {
-  background-color: #374151;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
   height: 24rem;
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
@@ -147,6 +189,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  border: 1px solid rgba(52, 211, 153, 0.3);
 }
 
 .game-area__content {
@@ -166,7 +209,7 @@
 
 .game-area__subtext {
   font-size: 0.875rem;
-  opacity: 0.8;
+  color: #a7f3d0;
   margin: 0.5rem 0 1rem 0;
 }
 
@@ -176,13 +219,14 @@
 
 .game-area__stat {
   margin: 0.5rem 0;
+  color: #a7f3d0;
 }
 
 .game-area__timer {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  color: white;
+  color: #a7f3d0;
   font-size: 0.875rem;
 }
 
@@ -200,12 +244,9 @@
 
 .game-paused__card,
 .game-finished__card {
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border-radius: 0.5rem;
-  padding: 2rem;
   max-width: 28rem;
   margin: 0 auto;
+  padding: 2rem;
 }
 
 .game-paused__title,
@@ -214,11 +255,12 @@
   font-weight: bold;
   color: white;
   margin: 0 0 1.5rem 0;
+  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .game-paused__stats,
 .game-finished__stats {
-  color: white;
+  color: #a7f3d0;
   margin-bottom: 1.5rem;
 }
 
@@ -233,6 +275,7 @@
 
 .game-finished__stat-value {
   font-weight: bold;
+  color: white;
 }
 
 .game-paused__buttons,
@@ -242,79 +285,60 @@
   gap: 1rem;
 }
 
-/* Button styles */
+/* Button styles - stejné jako HomePage */
 .game-button {
   width: 100%;
   font-weight: bold;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  border: none;
+  cursor: pointer;
   text-decoration: none;
-  font-size: 1rem;
 }
 
 .game-button:hover {
-  transform: translateY(-1px);
+  transform: scale(1.05);
+  box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
-.game-button--green {
-  background-color: #16a34a;
-  color: white;
+.game-button--primary {
+  background-color: #eab308;
+  color: black;
 }
 
-.game-button--green:hover {
-  background-color: #15803d;
+.game-button--primary:hover {
+  background-color: #facc15;
 }
 
-.game-button--blue {
-  background-color: #2563eb;
-  color: white;
+.game-button--secondary {
+  background-color: transparent;
+  color: #a7f3d0;
+  border: 2px solid rgba(52, 211, 153, 0.3);
 }
 
-.game-button--blue:hover {
-  background-color: #1d4ed8;
+.game-button--secondary:hover {
+  background-color: rgba(52, 211, 153, 0.1);
+  border-color: #34d399;
 }
 
-.game-button--purple {
-  background-color: #9333ea;
-  color: white;
-}
-
-.game-button--purple:hover {
-  background-color: #7c3aed;
-}
-
-.game-button--gray {
-  background-color: #6b7280;
-  color: white;
-}
-
-.game-button--gray:hover {
+.game-button--disabled {
   background-color: #4b5563;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
-.game-button--yellow {
-  background-color: #ca8a04;
-  color: white;
-}
-
-.game-button--yellow:hover {
-  background-color: #a16207;
-}
-
-.game-button--red {
-  background-color: #dc2626;
-  color: white;
-}
-
-.game-button--red:hover {
-  background-color: #b91c1c;
+.game-button--disabled:hover {
+  transform: none;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .game-button--small {
@@ -322,11 +346,17 @@
   font-size: 0.875rem;
 }
 
+.game-button--small:hover {
+  transform: translateY(-2px);
+}
+
 /* Footer */
 .game-footer {
   background-color: rgba(0, 0, 0, 0.3);
   padding: 1rem;
   margin-top: 2rem;
+  position: relative;
+  z-index: 10;
 }
 
 .game-footer__container {
@@ -336,9 +366,8 @@
 }
 
 .game-footer__text {
-  color: white;
+  color: #a7f3d0;
   font-size: 0.875rem;
-  opacity: 0.8;
   margin: 0;
 }
 

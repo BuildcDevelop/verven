@@ -159,26 +159,26 @@ export default function GamePage(): JSX.Element {
         {/* Menu stav */}
         {gameState === 'menu' && (
           <div className="game-menu">
-            <div className="game-menu__card">
+            <div className="game-card game-menu__card">
               <h2 className="game-menu__title">Hlavní menu</h2>
               
               <div className="game-menu__buttons">
                 <button
                   onClick={startGame}
-                  className="game-button game-button--green"
+                  className="game-button game-button--primary"
                 >
                   Začít hru
                 </button>
                 
                 <button
-                  className="game-button game-button--blue"
+                  className="game-button game-button--secondary"
                   onClick={() => alert('Nastavení - TODO')}
                 >
                   Nastavení
                 </button>
                 
                 <button
-                  className="game-button game-button--purple"
+                  className="game-button game-button--secondary"
                   onClick={() => alert('Žebříček - TODO')}
                 >
                   Žebříček
@@ -186,7 +186,7 @@ export default function GamePage(): JSX.Element {
 
                 <button
                   onClick={() => navigate('/')}
-                  className="game-button game-button--gray"
+                  className="game-button game-button--secondary"
                 >
                   Zpět na hlavní stránku
                 </button>
@@ -198,7 +198,7 @@ export default function GamePage(): JSX.Element {
         {/* Hrací stav */}
         {gameState === 'playing' && (
           <div className="game-playing">
-            <div className="game-playing__card">
+            <div className="game-card game-playing__card">
               <h2 className="game-playing__title">Hra běží!</h2>
               
               {/* Herní oblast - zde bude vaše hra */}
@@ -225,14 +225,14 @@ export default function GamePage(): JSX.Element {
               <div className="game-playing__controls">
                 <button
                   onClick={pauseGame}
-                  className="game-button game-button--yellow game-button--small"
+                  className="game-button game-button--primary game-button--small"
                 >
                   Pozastavit
                 </button>
                 
                 <button
                   onClick={endGame}
-                  className="game-button game-button--red game-button--small"
+                  className="game-button game-button--secondary game-button--small"
                 >
                   Ukončit hru
                 </button>
@@ -244,7 +244,7 @@ export default function GamePage(): JSX.Element {
         {/* Pozastavený stav */}
         {gameState === 'paused' && (
           <div className="game-paused">
-            <div className="game-paused__card">
+            <div className="game-card game-paused__card">
               <h2 className="game-paused__title">Hra pozastavena</h2>
               
               <div className="game-paused__stats">
@@ -256,14 +256,14 @@ export default function GamePage(): JSX.Element {
               <div className="game-paused__buttons">
                 <button
                   onClick={resumeGame}
-                  className="game-button game-button--green"
+                  className="game-button game-button--primary"
                 >
                   Pokračovat
                 </button>
                 
                 <button
                   onClick={resetGame}
-                  className="game-button game-button--gray"
+                  className="game-button game-button--secondary"
                 >
                   Zpět do menu
                 </button>
@@ -275,7 +275,7 @@ export default function GamePage(): JSX.Element {
         {/* Dokončený stav */}
         {gameState === 'finished' && (
           <div className="game-finished">
-            <div className="game-finished__card">
+            <div className="game-card game-finished__card">
               <h2 className="game-finished__title">Hra skončena!</h2>
               
               <div className="game-finished__stats">
@@ -293,14 +293,14 @@ export default function GamePage(): JSX.Element {
               <div className="game-finished__buttons">
                 <button
                   onClick={startGame}
-                  className="game-button game-button--green"
+                  className="game-button game-button--primary"
                 >
                   Hrát znovu
                 </button>
                 
                 <button
                   onClick={resetGame}
-                  className="game-button game-button--gray"
+                  className="game-button game-button--secondary"
                 >
                   Zpět do menu
                 </button>
