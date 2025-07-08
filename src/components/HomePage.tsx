@@ -1,9 +1,12 @@
+// src/components/HomePage.tsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Gamepad2, Shield, Sword, Users } from 'lucide-react';
 import './HomePage.css';
 
 const HomePage = () => {
   const [buildInfoExpanded, setBuildInfoExpanded] = useState(false);
+  const navigate = useNavigate();
   
   const currentBuild = {
     version: "v0.1.0-alpha",
@@ -12,12 +15,13 @@ const HomePage = () => {
       "Základní struktura projektu",
       "Implementace Convex backend",
       "Přihlašovací systém",
-      "Základní UI komponenty"
+      "Základní UI komponenty",
+      "Herní stránka s menu systémem"
     ]
   };
 
   const handleLogin = () => {
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   return (
@@ -81,7 +85,7 @@ const HomePage = () => {
           <div className="homepage__feature">
             <Users className="homepage__feature-icon" size={48} />
             <h3 className="homepage__feature-title">Správa lén</h3>
-            <p className="homepage__feature-description">Spravujte obyvatele a suroviny</p>
+            <p className="homepage__feature-description">Spravujete obyvatele a suroviny</p>
           </div>
         </div>
 

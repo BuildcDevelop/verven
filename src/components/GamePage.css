@@ -1,0 +1,393 @@
+/* src/components/GamePage.css */
+/* Kompletní styly pro GamePage - náhrada za Tailwind */
+
+/* Reset a základní styly */
+.game-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #581c87 0%, #1e40af 50%, #1e3a8a 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Loading obrazovka */
+.game-loading {
+  min-height: 100vh;
+  background-color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-loading__text {
+  color: white;
+  font-size: 1.25rem;
+}
+
+/* Header */
+.game-header {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+}
+
+.game-header__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-header__info {
+  color: white;
+}
+
+.game-header__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 0.25rem 0;
+}
+
+.game-header__welcome {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.game-header__stats-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-header__stats {
+  color: white;
+  text-align: right;
+}
+
+.game-header__stat {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin: 0.125rem 0;
+}
+
+.game-header__logout {
+  background-color: #dc2626;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.game-header__logout:hover {
+  background-color: #b91c1c;
+}
+
+/* Main content */
+.game-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Menu section */
+.game-menu {
+  text-align: center;
+}
+
+.game-menu__card {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.game-menu__title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 1.5rem 0;
+}
+
+.game-menu__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Playing section */
+.game-playing {
+  text-align: center;
+}
+
+.game-playing__card {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.game-playing__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 1.5rem 0;
+}
+
+.game-area {
+  background-color: #374151;
+  height: 24rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.game-area__content {
+  color: white;
+  text-align: center;
+}
+
+.game-area__icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.game-area__text {
+  font-size: 1.125rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.game-area__subtext {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.game-area__stats {
+  margin-top: 1rem;
+}
+
+.game-area__stat {
+  margin: 0.5rem 0;
+}
+
+.game-area__timer {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.game-playing__controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Paused/Finished sections */
+.game-paused,
+.game-finished {
+  text-align: center;
+}
+
+.game-paused__card,
+.game-finished__card {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.game-paused__title,
+.game-finished__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 1.5rem 0;
+}
+
+.game-paused__stats,
+.game-finished__stats {
+  color: white;
+  margin-bottom: 1.5rem;
+}
+
+.game-paused__stat,
+.game-finished__stat {
+  margin: 0.25rem 0;
+}
+
+.game-finished__stat {
+  font-size: 1.125rem;
+}
+
+.game-finished__stat-value {
+  font-weight: bold;
+}
+
+.game-paused__buttons,
+.game-finished__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Button styles */
+.game-button {
+  width: 100%;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.game-button:hover {
+  transform: translateY(-1px);
+}
+
+.game-button--green {
+  background-color: #16a34a;
+  color: white;
+}
+
+.game-button--green:hover {
+  background-color: #15803d;
+}
+
+.game-button--blue {
+  background-color: #2563eb;
+  color: white;
+}
+
+.game-button--blue:hover {
+  background-color: #1d4ed8;
+}
+
+.game-button--purple {
+  background-color: #9333ea;
+  color: white;
+}
+
+.game-button--purple:hover {
+  background-color: #7c3aed;
+}
+
+.game-button--gray {
+  background-color: #6b7280;
+  color: white;
+}
+
+.game-button--gray:hover {
+  background-color: #4b5563;
+}
+
+.game-button--yellow {
+  background-color: #ca8a04;
+  color: white;
+}
+
+.game-button--yellow:hover {
+  background-color: #a16207;
+}
+
+.game-button--red {
+  background-color: #dc2626;
+  color: white;
+}
+
+.game-button--red:hover {
+  background-color: #b91c1c;
+}
+
+.game-button--small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Footer */
+.game-footer {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  margin-top: 2rem;
+}
+
+.game-footer__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.game-footer__text {
+  color: white;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .game-header {
+    padding: 0.75rem;
+  }
+  
+  .game-header__container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .game-header__stats-section {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .game-main {
+    padding: 1rem;
+  }
+  
+  .game-menu__card,
+  .game-playing__card,
+  .game-paused__card,
+  .game-finished__card {
+    padding: 1.5rem;
+  }
+  
+  .game-area {
+    height: 20rem;
+  }
+  
+  .game-playing__controls {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-menu__card,
+  .game-playing__card,
+  .game-paused__card,
+  .game-finished__card {
+    padding: 1rem;
+  }
+  
+  .game-area {
+    height: 16rem;
+  }
+}

@@ -1,25 +1,51 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LogIn, UserPlus } from 'lucide-react';
-import './LoginPage.css';
+import './LoginPage.css'; // Pouze LoginPage CSS!
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementovat přihlášení přes Convex
-    console.log('Přihlášení:', { username, password });
-    // Po úspěšném přihlášení přesměrovat na /game
-    // window.location.href = '/game';
+    setIsLoading(true);
+    
+    try {
+      // TODO: Implementovat přihlášení přes Convex
+      console.log('Přihlášení:', { username, password });
+      
+      // Simulace API volání
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Uložení auth tokenu (nahradit skutečným tokenem z Convex)
+      localStorage.setItem('authToken', 'dummy-token-123');
+      localStorage.setItem('userData', JSON.stringify({
+        id: 1,
+        username: username,
+        email: `${username}@example.com`
+      }));
+      
+      // Po úspěšném přihlášení přesměrovat na /game
+      navigate('/game');
+      
+    } catch (error) {
+      console.error('Chyba při přihlášení:', error);
+      alert('Chyba při přihlášení. Zkuste to znovu.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToHome = () => {
-    window.location.href = '/';
+    navigate('/');
   };
 
   const handleRegister = () => {
-    // TODO: Implementovat později
+    // TODO: Implementovat později nebo navigovat na registrační stránku
+    // navigate('/register');
     alert('Registrace bude brzy dostupná!');
   };
 
@@ -59,6 +85,7 @@ const LoginPage = () => {
                   className="login-page__input"
                   placeholder="Zadejte vaše jméno"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -74,15 +101,17 @@ const LoginPage = () => {
                   className="login-page__input"
                   placeholder="Zadejte vaše heslo"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
               <button 
                 type="submit" 
                 className="login-page__button login-page__button--primary"
+                disabled={isLoading}
               >
                 <LogIn size={20} />
-                Přihlásit se
+                {isLoading ? 'Přihlašuji...' : 'Přihlásit se'}
               </button>
             </form>
 
@@ -90,7 +119,7 @@ const LoginPage = () => {
             <button
               onClick={handleRegister}
               className="login-page__button login-page__button--secondary"
-              disabled
+              disabled={isLoading}
             >
               <UserPlus size={20} />
               Registrace nového uživatele
@@ -101,6 +130,7 @@ const LoginPage = () => {
             <button
               onClick={handleBackToHome}
               className="login-page__button login-page__button--back"
+              disabled={isLoading}
             >
               <ArrowLeft size={20} />
               Zpět na Verven stránku
