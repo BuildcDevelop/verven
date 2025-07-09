@@ -185,6 +185,13 @@ export default function GamePage(): JSX.Element {
                 </button>
 
                 <button
+                  onClick={() => navigate('/map')}
+                  className="game-button game-button--primary"
+                >
+                  Zobrazit mapu světa
+                </button>
+
+                <button
                   onClick={() => navigate('/')}
                   className="game-button game-button--secondary"
                 >

@@ -5,6 +5,7 @@ import './App.css';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import GamePage from './components/GamePage';
+import MapPage from './components/MapPage';  // <-- Přidejte tento řádek
 
 function App(): JSX.Element {
   return (
@@ -14,6 +15,7 @@ function App(): JSX.Element {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/game" element={<GamePage />} />
+          <Route path="/map" element={<MapPage />} />  {/* <-- Přidejte tento řádek */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
