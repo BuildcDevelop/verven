@@ -1,6 +1,7 @@
 // src/components/MapPage.tsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Home, Users, Sword } from 'lucide-react';
 import './MapPage.css';
 
 interface User {
@@ -9,28 +10,95 @@ interface User {
   email: string;
 }
 
-type TileType = 'player' | 'meadow' | 'mountain';
-
-interface MapTile {
+interface MapCell {
   x: number;
   y: number;
-  type: TileType;
+  type: 'village' | 'barbarian' | 'empty' | 'bonus';
   owner?: string;
-  villageName?: string;
+  village?: string;
+  population?: number;
 }
 
 export default function MapPage(): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedTile, setSelectedTile] = useState<MapTile | null>(null);
-  const [mapData, setMapData] = useState<MapTile[]>([]);
+  const [searchCoords, setSearchCoords] = useState<string>('456|537');
+  const [centerX, setCenterX] = useState<number>(456);
+  const [centerY, setCenterY] = useState<number>(537);
   const navigate = useNavigate();
 
-  // Kontrola přihlášení při načtení
+  // Mock map data - generování okolních buněk
+  const generateMapData = (centerX: number, centerY: number): MapCell[] => {
+    const cells: MapCell[] = [];
+    const mapSize = 15; // 15x15 mřížka
+    const offset = Math.floor(mapSize / 2);
+
+    for (let i = 0; i < mapSize; i++) {
+      for (let j = 0; j < mapSize; j++) {
+        const x = centerX - offset + i;
+        const y = centerY - offset + j;
+        
+        // Určí typ buňky podle pozice
+        let cellType: 'village' | 'barbarian' | 'empty' | 'bonus' = 'empty';
+        let owner: string | undefined;
+        let village: string | undefined;
+        let population: number | undefined;
+
+        // Naše hlavní vesnice
+        if (x === 456 && y === 537) {
+          cellType = 'village';
+          owner = 'Hráč';
+          village = 'Hlavní vesnice';
+          population = 8542;
+        }
+        // Naše druhá vesnice
+        else if (x === 445 && y === 523) {
+          cellType = 'village';
+          owner = 'Hráč';
+          village = 'Severní základna';
+          population = 3241;
+        }
+        // Náhodné vesnice ostatních hráčů
+        else if (Math.random() < 0.15) {
+          cellType = 'village';
+          owner = `Hráč${Math.floor(Math.random() * 999) + 1}`;
+          village = `Vesnice (${x}|${y})`;
+          population = Math.floor(Math.random() * 8000) + 1000;
+        }
+        // Barbarské vesnice
+        else if (Math.random() < 0.08) {
+          cellType = 'barbarian';
+          village = `Vesnice barbarů`;
+          population = Math.floor(Math.random() * 3000) + 500;
+        }
+        // Bonus pole
+        else if (Math.random() < 0.05) {
+          cellType = 'bonus';
+        }
+
+        cells.push({
+          x,
+          y,
+          type: cellType,
+          owner,
+          village,
+          population
+        });
+      }
+    }
+
+    return cells;
+  };
+
+  const [mapData, setMapData] = useState<MapCell[]>(() => generateMapData(centerX, centerY));
+
   useEffect(() => {
     checkAuth();
-    generateMap();
   }, []);
+
+  useEffect(() => {
+    setMapData(generateMapData(centerX, centerY));
+  }, [centerX, centerY]);
 
   const checkAuth = async (): Promise<void> => {
     try {
@@ -40,7 +108,6 @@ export default function MapPage(): JSX.Element {
         return;
       }
       
-      // Simulace načtení uživatelských dat
       const userData: User = {
         id: 1,
         username: 'Hráč',
@@ -55,252 +122,182 @@ export default function MapPage(): JSX.Element {
     }
   };
 
-  const generateMap = (): void => {
-    const tiles: MapTile[] = [];
-    
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 10; x++) {
-        let tileType: TileType;
-        let owner: string | undefined;
-        let villageName: string | undefined;
-        
-        // Logika pro generování mapy
-        if (x === 5 && y === 5) {
-          // Hráčova vesnice uprostřed
-          tileType = 'player';
-          owner = 'Hráč';
-          villageName = 'Hlavní osada';
-        } else if (Math.random() < 0.15) {
-          // 15% šance na hory
-          tileType = 'mountain';
-        } else if (Math.random() < 0.3) {
-          // 30% šance na cizí vesnice
-          tileType = 'player';
-          owner = `Hráč ${Math.floor(Math.random() * 100) + 1}`;
-          villageName = `Vesnice ${Math.floor(Math.random() * 1000) + 1}`;
-        } else {
-          // Zbytek jsou louky
-          tileType = 'meadow';
-        }
-        
-        tiles.push({
-          x,
-          y,
-          type: tileType,
-          owner,
-          villageName
-        });
-      }
-    }
-    
-    setMapData(tiles);
-  };
-
   const handleLogout = (): void => {
     localStorage.removeItem('authToken');
-    navigate('/');
+    navigate('/login');
   };
 
-  const handleTileClick = (tile: MapTile): void => {
-    setSelectedTile(tile);
+  const handleSearchCoords = (): void => {
+    const coords = searchCoords.split('|');
+    if (coords.length === 2) {
+      const x = parseInt(coords[0]);
+      const y = parseInt(coords[1]);
+      if (!isNaN(x) && !isNaN(y)) {
+        setCenterX(x);
+        setCenterY(y);
+      }
+    }
   };
 
-  const getTileClass = (tile: MapTile): string => {
-    const baseClass = 'map-grid__tile';
-    const typeClass = `map-grid__tile--${tile.type}`;
-    const selectedClass = selectedTile?.x === tile.x && selectedTile?.y === tile.y ? 'map-grid__tile--selected' : '';
-    
-    return `${baseClass} ${typeClass} ${selectedClass}`.trim();
+  const handleCellClick = (cell: MapCell): void => {
+    if (cell.type !== 'empty') {
+      // TODO: Zobrazit detail vesnice
+      console.log('Kliknuto na:', cell);
+    }
   };
 
-  const getTileContent = (tile: MapTile): string => {
-    switch (tile.type) {
-      case 'player':
-        return tile.owner === 'Hráč' ? '🏰' : '🏘️';
-      case 'mountain':
-        return '🏔️';
-      case 'meadow':
+  const getCellColor = (cell: MapCell): string => {
+    switch (cell.type) {
+      case 'village':
+        if (cell.owner === 'Hráč') return '#eab308'; // Naše vesnice - žlutá
+        return '#3b82f6'; // Cizí vesnice - modrá
+      case 'barbarian':
+        return '#6b7280'; // Barbarské vesnice - šedá
+      case 'bonus':
+        return '#10b981'; // Bonus pole - zelená
       default:
-        return '🌾';
+        return 'transparent'; // Prázdné pole
+    }
+  };
+
+  const getCellIcon = (cell: MapCell): JSX.Element | null => {
+    switch (cell.type) {
+      case 'village':
+        if (cell.owner === 'Hráč') return <Home size={12} />;
+        return <Users size={12} />;
+      case 'barbarian':
+        return <Sword size={12} />;
+      case 'bonus':
+        return <span style={{ fontSize: '10px' }}>+</span>;
+      default:
+        return null;
     }
   };
 
   if (loading) {
     return (
       <div className="map-loading">
-        <div className="map-loading__text">Načítání mapy...</div>
+        <div className="map-loading__text">Načítání...</div>
       </div>
     );
   }
 
   return (
     <div className="map-page">
-      {/* Header */}
+      {/* Header stejný jako GamePage */}
       <header className="map-header">
         <div className="map-header__container">
-          <div className="map-header__info">
-            <h1 className="map-header__title">Mapa světa</h1>
-            <p className="map-header__welcome">Vítej, {user?.username}!</p>
-          </div>
-          
-          <div className="map-header__actions">
-            <button
+          <nav className="map-header__nav">
+            <button 
+              className="map-nav__item"
               onClick={() => navigate('/game')}
-              className="map-header__button map-header__button--secondary"
             >
-              Zpět do hry
+              Náhled království
             </button>
-            
-            <button
-              onClick={handleLogout}
-              className="map-header__button map-header__button--logout"
+            <button 
+              className="map-nav__item map-nav__item--active"
             >
-              Odhlásit se
+              Mapa
             </button>
-          </div>
+            <button className="map-nav__item" disabled>
+              Profil
+            </button>
+            <button className="map-nav__item" disabled>
+              Aliance
+            </button>
+            <button className="map-nav__item" disabled>
+              Žebříček
+            </button>
+            <button className="map-nav__item" disabled>
+              Nastavení
+            </button>
+          </nav>
+          
+          <button
+            onClick={handleLogout}
+            className="map-header__logout"
+          >
+            Odhlásit se
+          </button>
         </div>
       </header>
 
-      {/* Hlavní obsah */}
+      {/* Main content */}
       <main className="map-main">
         <div className="map-container">
-          {/* Mapa */}
-          <div className="map-section">
-            <div className="map-card">
-              <div className="map-header-section">
-                <h2 className="map-section__title">Kontinent 54</h2>
-                <div className="map-coordinates">
-                  {selectedTile && (
-                    <span className="map-coordinates__text">
-                      Vybrané políčko: {selectedTile.x + 1}|{selectedTile.y + 1}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="map-grid">
-                {/* Číslování sloupců */}
-                <div className="map-grid__row map-grid__row--header">
-                  <div className="map-grid__coordinate"></div>
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <div key={i} className="map-grid__coordinate">
-                      {i + 1}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Řádky mapy */}
-                {Array.from({ length: 10 }, (_, y) => (
-                  <div key={y} className="map-grid__row">
-                    {/* Číslování řádků */}
-                    <div className="map-grid__coordinate">{y + 1}</div>
-                    
-                    {/* Políčka */}
-                    {Array.from({ length: 10 }, (_, x) => {
-                      const tile = mapData.find(t => t.x === x && t.y === y);
-                      if (!tile) return null;
-                      
-                      return (
-                        <div
-                          key={`${x}-${y}`}
-                          className={getTileClass(tile)}
-                          onClick={() => handleTileClick(tile)}
-                          title={`${x + 1}|${y + 1} - ${tile.type === 'player' ? (tile.villageName || 'Vesnice') : tile.type === 'mountain' ? 'Hory' : 'Louky'}`}
-                        >
-                          <span className="map-grid__tile-content">
-                            {getTileContent(tile)}
-                          </span>
-                          <span className="map-grid__tile-coords">
-                            {x + 1}|{y + 1}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
+          {/* Navigace */}
+          <div className="map-controls">
+            <div className="map-controls__search">
+              <input
+                type="text"
+                value={searchCoords}
+                onChange={(e) => setSearchCoords(e.target.value)}
+                placeholder="Souřadnice (x|y)"
+                className="map-controls__input"
+              />
+              <button
+                onClick={handleSearchCoords}
+                className="map-controls__search-btn"
+              >
+                <Search size={16} />
+              </button>
+            </div>
+
+            <div className="map-controls__center">
+              Střed mapy: {centerX}|{centerY}
             </div>
           </div>
 
-          {/* Info panel */}
-          <div className="map-info">
-            <div className="map-card map-info__card">
-              <h3 className="map-info__title">Informace o políčku</h3>
-              
-              {selectedTile ? (
-                <div className="map-info__content">
-                  <div className="map-info__item">
-                    <strong>Souřadnice:</strong> {selectedTile.x + 1}|{selectedTile.y + 1}
+          {/* Mapa */}
+          <div className="map-grid-container">
+            <div className="map-grid">
+              {mapData.map((cell, index) => (
+                <div
+                  key={index}
+                  className={`map-cell ${cell.type !== 'empty' ? 'map-cell--interactive' : ''}`}
+                  style={{ backgroundColor: getCellColor(cell) }}
+                  onClick={() => handleCellClick(cell)}
+                  title={cell.village ? `${cell.village} (${cell.x}|${cell.y})${cell.owner ? ` - ${cell.owner}` : ''}` : `${cell.x}|${cell.y}`}
+                >
+                  <div className="map-cell__coords">
+                    {cell.x}|{cell.y}
                   </div>
-                  
-                  <div className="map-info__item">
-                    <strong>Typ:</strong> {
-                      selectedTile.type === 'player' ? 'Vesnice' :
-                      selectedTile.type === 'mountain' ? 'Hory' : 'Louky'
-                    }
-                  </div>
-                  
-                  {selectedTile.type === 'player' && (
-                    <>
-                      <div className="map-info__item">
-                        <strong>Vlastník:</strong> {selectedTile.owner}
-                      </div>
-                      
-                      <div className="map-info__item">
-                        <strong>Název:</strong> {selectedTile.villageName}
-                      </div>
-                      
-                      {selectedTile.owner === 'Hráč' && (
-                        <button className="map-info__action">
-                          Přejít do vesnice
-                        </button>
-                      )}
-                    </>
-                  )}
-                  
-                  {selectedTile.type === 'meadow' && (
-                    <div className="map-info__item">
-                      <span className="map-info__empty">Volné území</span>
-                      <button className="map-info__action map-info__action--disabled" disabled>
-                        Založit vesnici <span className="map-info__note">(brzy)</span>
-                      </button>
+                  {cell.type !== 'empty' && (
+                    <div className="map-cell__icon">
+                      {getCellIcon(cell)}
                     </div>
                   )}
-                  
-                  {selectedTile.type === 'mountain' && (
-                    <div className="map-info__item">
-                      <span className="map-info__empty">Neobyvatelné území</span>
+                  {cell.population && (
+                    <div className="map-cell__population">
+                      {cell.population}
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="map-info__empty">
-                  Klikni na políčko pro zobrazení informací
-                </div>
-              )}
+              ))}
             </div>
+          </div>
 
-            {/* Legenda */}
-            <div className="map-card map-legend">
-              <h3 className="map-legend__title">Legenda</h3>
-              <div className="map-legend__items">
-                <div className="map-legend__item">
-                  <span className="map-legend__icon">🏰</span>
-                  <span className="map-legend__text">Tvoje vesnice</span>
-                </div>
-                <div className="map-legend__item">
-                  <span className="map-legend__icon">🏘️</span>
-                  <span className="map-legend__text">Cizí vesnice</span>
-                </div>
-                <div className="map-legend__item">
-                  <span className="map-legend__icon">🌾</span>
-                  <span className="map-legend__text">Volné území</span>
-                </div>
-                <div className="map-legend__item">
-                  <span className="map-legend__icon">🏔️</span>
-                  <span className="map-legend__text">Hory</span>
-                </div>
-              </div>
+          {/* Legenda */}
+          <div className="map-legend">
+            <div className="map-legend__item">
+              <div className="map-legend__color" style={{ backgroundColor: '#eab308' }}></div>
+              <Home size={12} />
+              <span>Vaše vesnice</span>
+            </div>
+            <div className="map-legend__item">
+              <div className="map-legend__color" style={{ backgroundColor: '#3b82f6' }}></div>
+              <Users size={12} />
+              <span>Vesnice hráčů</span>
+            </div>
+            <div className="map-legend__item">
+              <div className="map-legend__color" style={{ backgroundColor: '#6b7280' }}></div>
+              <Sword size={12} />
+              <span>Barbarské vesnice</span>
+            </div>
+            <div className="map-legend__item">
+              <div className="map-legend__color" style={{ backgroundColor: '#10b981' }}></div>
+              <span>+</span>
+              <span>Bonus pole</span>
             </div>
           </div>
         </div>
@@ -310,7 +307,10 @@ export default function MapPage(): JSX.Element {
       <footer className="map-footer">
         <div className="map-footer__container">
           <p className="map-footer__text">
-            &copy; 2025 Verven Game. Všechna práva vyhrazena.
+            © 2025 Patrik Brnušák
+          </p>
+          <p className="map-footer__text">
+            Postaveno na Convex - moderní backend pro webové aplikace
           </p>
         </div>
       </footer>

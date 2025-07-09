@@ -52,6 +52,7 @@ export default function GamePage(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(true);
   const [commandsExpanded, setCommandsExpanded] = useState<boolean>(false);
   const [buildQueueExpanded, setBuildQueueExpanded] = useState<boolean>(false);
+  const [villagesExpanded, setVillagesExpanded] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Mock data
@@ -175,7 +176,7 @@ export default function GamePage(): JSX.Element {
               Náhled království
             </button>
             <button 
-              className="game-nav__item game-nav__item--active"
+              className="game-nav__item"
               onClick={() => navigate('/map')}
             >
               Mapa
@@ -225,18 +226,56 @@ export default function GamePage(): JSX.Element {
       {/* Hlavní obsah */}
       <main className="game-main">
         <div className="game-layout">
-          {/* Levý panel - Seznam držav (Menu 3) */}
+          {/* Levý panel - Seznam držav (Menu 3) + Suroviny */}
           <aside className="game-sidebar">
-            <div className="game-card">
-              <h3 className="game-sidebar__title">Náhled vlastních držav</h3>
-              <div className="game-villages">
-                {villages.map(village => (
-                  <div 
-                    key={village.id}
-                    className={`game-village ${village.isActive ? 'game-village--active' : ''}`}
-                  >
-                    <div className="game-village__name">{village.name}</div>
-                    <div className="game-village__coords">{village.coordinates}</div>
+            {/* Náhled vlastních držav - rozbalovací */}
+            <div className="game-card game-villages-card">
+              <button 
+                className="game-villages__header"
+                onClick={() => setVillagesExpanded(!villagesExpanded)}
+              >
+                <h3 className="game-sidebar__title">Náhled vlastních držav</h3>
+                {villagesExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+              {villagesExpanded && (
+                <div className="game-villages">
+                  {villages.map(village => (
+                    <div 
+                      key={village.id}
+                      className={`game-village ${village.isActive ? 'game-village--active' : ''}`}
+                    >
+                      <div className="game-village__name">{village.name}</div>
+                      <div className="game-village__coords">{village.coordinates}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Suroviny a produkce */}
+            <div className="game-card game-sidebar-resources">
+              <h3 className="game-section__title">Suroviny a produkce</h3>
+              <div className="game-resources__list">
+                {resources.map((resource, index) => (
+                  <div key={index} className="game-resource">
+                    <div className="game-resource__name">
+                      {resource.name === 'Vény' ? 'Množství vénů' : 
+                       resource.name === 'Mince' ? 'Uložené mince' : resource.name}:
+                    </div>
+                    <div className="game-resource__amount">{resource.amount.toLocaleString()}</div>
+                    {resource.production && (
+                      <div className="game-resource__production">+{resource.production}/h</div>
+                    )}
+                    {resource.name === 'Mince' && (
+                      <button className="game-resource__action">
+                        <Plus size={16} />
+                      </button>
+                    )}
+                    {resource.inProduction && (
+                      <div className="game-resource__in-production">
+                        V produkci: {resource.inProduction}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -263,8 +302,8 @@ export default function GamePage(): JSX.Element {
               </div>
             </div>
 
-            {/* Grid pro budovy, suroviny a armádu */}
-            <div className="game-content-grid">
+            {/* Grid pro budovy a armádu */}
+            <div className="game-main-grid">
               {/* Budovy */}
               <div className="game-buildings">
                 <div className="game-card">
@@ -307,34 +346,6 @@ export default function GamePage(): JSX.Element {
                           <div className="game-building__time">{building.buildTime}</div>
                           <button className="game-building__build">Postavit</button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Suroviny a produkce */}
-              <div className="game-resources">
-                <div className="game-card">
-                  <h3 className="game-section__title">Suroviny a produkce</h3>
-                  <div className="game-resources__list">
-                    {resources.map((resource, index) => (
-                      <div key={index} className="game-resource">
-                        <div className="game-resource__name">{resource.name}:</div>
-                        <div className="game-resource__amount">{resource.amount.toLocaleString()}</div>
-                        {resource.production && (
-                          <div className="game-resource__production">+{resource.production}/h</div>
-                        )}
-                        {resource.name === 'Mince' && (
-                          <button className="game-resource__action">
-                            <Plus size={16} />
-                          </button>
-                        )}
-                        {resource.inProduction && (
-                          <div className="game-resource__in-production">
-                            V produkci: {resource.inProduction}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -390,7 +401,7 @@ export default function GamePage(): JSX.Element {
                       {displayedCommands
                         .filter(cmd => cmd.type === 'incoming')
                         .map((command, index) => (
-                          <div key={index} className="game-command">
+                          <div key={index} className={`game-command ${command.description.includes('Útok od') ? 'game-command--attack' : ''}`}>
                             <div className="game-command__description">
                               {command.description}
                             </div>
