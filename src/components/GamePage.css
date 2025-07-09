@@ -1,5 +1,5 @@
 /* src/components/GamePage.css */
-/* GamePage ve stejném stylu jako HomePage - zelené barvy */
+/* Nové herní rozhraní inspirované Divokými Kmeny */
 
 /* Reset a základní styly */
 .game-page {
@@ -49,310 +49,613 @@
   font-size: 1.25rem;
 }
 
-/* Header */
+/* Hlavní menu (Menu 1) */
 .game-header {
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 0.75rem 0;
   position: relative;
   z-index: 10;
 }
 
 .game-header__container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.game-header__info {
-  color: white;
-}
-
-.game-header__title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0 0 0.25rem 0;
-  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-}
-
-.game-header__welcome {
-  font-size: 0.875rem;
-  color: #a7f3d0;
-  margin: 0;
-}
-
-.game-header__stats-section {
+.game-header__nav {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
-.game-header__stats {
-  color: white;
-  text-align: right;
-}
-
-.game-header__stat {
-  font-size: 0.875rem;
+.game-nav__item {
+  background: rgba(0, 0, 0, 0.3);
   color: #a7f3d0;
-  margin: 0.125rem 0;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.game-nav__item:hover:not(:disabled) {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: #34d399;
+  color: white;
+}
+
+.game-nav__item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-nav__item--active {
+  background: #eab308;
+  color: black;
+  border-color: #eab308;
 }
 
 .game-header__logout {
   background-color: #dc2626;
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.25rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
 }
 
 .game-header__logout:hover {
   background-color: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
-/* Main content */
-.game-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+/* Aktuální projekt (Menu 2) */
+.game-project {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+  padding: 0.75rem 0;
   position: relative;
   z-index: 10;
 }
 
-/* Card styles - stejné jako HomePage */
+.game-project__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-project__info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a7f3d0;
+  font-size: 0.875rem;
+}
+
+.game-project__label {
+  color: #a7f3d0;
+}
+
+.game-project__name {
+  color: white;
+  font-weight: 600;
+}
+
+.game-project__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 300px;
+}
+
+.game-project__progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  overflow: hidden;
+}
+
+.game-project__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #eab308, #facc15);
+  transition: width 0.3s ease;
+}
+
+.game-project__progress-text {
+  color: #facc15;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 30px;
+}
+
+/* Hlavní obsah */
+.game-main {
+  position: relative;
+  z-index: 10;
+  padding: 1rem;
+}
+
+.game-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 1rem;
+}
+
+/* Základní card styly */
 .game-card {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   border: 1px solid rgba(52, 211, 153, 0.3);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 1rem;
 }
 
-/* Menu section */
-.game-menu {
-  text-align: center;
+/* Levý sidebar - Seznam držav (Menu 3) */
+.game-sidebar {
+  height: fit-content;
 }
 
-.game-menu__card {
-  max-width: 28rem;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.game-menu__title {
-  font-size: 1.875rem;
-  font-weight: bold;
+.game-sidebar__title {
   color: white;
-  margin: 0 0 1.5rem 0;
-  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-}
-
-.game-menu__buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Playing section */
-.game-playing {
-  text-align: center;
-}
-
-.game-playing__card {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.game-playing__title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  margin: 0 0 1.5rem 0;
-  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-}
-
-.game-area {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
-  height: 24rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  border: 1px solid rgba(52, 211, 153, 0.3);
-}
-
-.game-area__content {
-  color: white;
-  text-align: center;
-}
-
-.game-area__icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.game-area__text {
-  font-size: 1.125rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.game-area__subtext {
-  font-size: 0.875rem;
-  color: #a7f3d0;
-  margin: 0.5rem 0 1rem 0;
-}
-
-.game-area__stats {
-  margin-top: 1rem;
-}
-
-.game-area__stat {
-  margin: 0.5rem 0;
-  color: #a7f3d0;
-}
-
-.game-area__timer {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  color: #a7f3d0;
-  font-size: 0.875rem;
-}
-
-.game-playing__controls {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-/* Paused/Finished sections */
-.game-paused,
-.game-finished {
-  text-align: center;
-}
-
-.game-paused__card,
-.game-finished__card {
-  max-width: 28rem;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.game-paused__title,
-.game-finished__title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  margin: 0 0 1.5rem 0;
-  text-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-}
-
-.game-paused__stats,
-.game-finished__stats {
-  color: #a7f3d0;
-  margin-bottom: 1.5rem;
-}
-
-.game-paused__stat,
-.game-finished__stat {
-  margin: 0.25rem 0;
-}
-
-.game-finished__stat {
-  font-size: 1.125rem;
-}
-
-.game-finished__stat-value {
-  font-weight: bold;
-  color: white;
-}
-
-.game-paused__buttons,
-.game-finished__buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Button styles - stejné jako HomePage */
-.game-button {
-  width: 100%;
-  font-weight: bold;
-  padding: 0.875rem 1.5rem;
-  border-radius: 0.5rem;
   font-size: 1rem;
-  transition: all 0.3s ease;
-  transform: scale(1);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.game-villages {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   gap: 0.5rem;
-  border: none;
+}
+
+.game-village {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
   cursor: pointer;
-  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
-.game-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.2);
-}
-
-.game-button--primary {
-  background-color: #eab308;
-  color: black;
-}
-
-.game-button--primary:hover {
-  background-color: #facc15;
-}
-
-.game-button--secondary {
-  background-color: transparent;
-  color: #a7f3d0;
-  border: 2px solid rgba(52, 211, 153, 0.3);
-}
-
-.game-button--secondary:hover {
-  background-color: rgba(52, 211, 153, 0.1);
+.game-village:hover {
+  background: rgba(52, 211, 153, 0.1);
   border-color: #34d399;
 }
 
-.game-button--disabled {
-  background-color: #4b5563;
-  color: #9ca3af;
-  cursor: not-allowed;
-  opacity: 0.75;
+.game-village--active {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: #eab308;
 }
 
-.game-button--disabled:hover {
-  transform: none;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+.game-village__name {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
 
-.game-button--small {
-  padding: 0.5rem 1rem;
+.game-village__coords {
+  color: #a7f3d0;
+  font-size: 0.75rem;
+}
+
+/* Hlavní content */
+.game-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Aktuální vesnice (Menu 4) */
+.game-current-village__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-current-village__title {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.game-current-village__copy {
+  background: rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.game-current-village__copy:hover {
+  background: rgba(52, 211, 153, 0.3);
+  color: white;
+}
+
+/* Grid pro budovy, suroviny a armádu */
+.game-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.game-buildings {
+  grid-column: 1 / -1;
+}
+
+/* Sekce titulky */
+.game-section__title {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+/* Stavební fronta */
+.game-build-queue {
+  margin-bottom: 1rem;
+}
+
+.game-build-queue__header {
+  background: rgba(0, 0, 0, 0.3);
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.game-build-queue__header:hover {
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.game-build-queue__content {
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-top: none;
+  border-radius: 0 0 0.25rem 0.25rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.game-build-queue__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
   font-size: 0.875rem;
 }
 
-.game-button--small:hover {
-  transform: translateY(-2px);
+.game-build-queue__item:last-child {
+  border-bottom: none;
+}
+
+.game-build-queue__time {
+  color: #facc15;
+  font-weight: 600;
+}
+
+.game-build-queue__cancel {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.125rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Budovy */
+.game-buildings__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.game-building {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.game-building:hover {
+  background: rgba(52, 211, 153, 0.05);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.game-building__icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.game-building__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.game-building__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.game-building__name {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.game-building__level {
+  color: #a7f3d0;
+  font-size: 0.75rem;
+}
+
+.game-building__cost {
+  color: #facc15;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.game-building__time {
+  color: #a7f3d0;
+  font-size: 0.75rem;
+}
+
+.game-building__build {
+  background: #eab308;
+  color: black;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.25rem;
+}
+
+.game-building__build:hover {
+  background: #facc15;
+}
+
+/* Suroviny */
+.game-resources__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.game-resource {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.game-resource__name {
+  color: #a7f3d0;
+  min-width: 60px;
+}
+
+.game-resource__amount {
+  color: white;
+  font-weight: 600;
+  flex: 1;
+}
+
+.game-resource__production {
+  color: #10b981;
+  font-size: 0.75rem;
+}
+
+.game-resource__in-production {
+  color: #facc15;
+  font-size: 0.75rem;
+}
+
+.game-resource__action {
+  background: rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 0.25rem;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-resource__action:hover {
+  background: rgba(52, 211, 153, 0.3);
+  color: white;
+}
+
+/* Armáda */
+.game-army__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.game-unit {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.game-unit__icon {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 0.5rem auto;
+}
+
+.game-unit__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.game-unit__name {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.game-unit__amount {
+  color: #a7f3d0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.game-unit__recruitment {
+  color: #facc15;
+  font-size: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.game-army__recruit {
+  background: transparent;
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.game-army__recruit:hover {
+  background: rgba(52, 211, 153, 0.1);
+  color: white;
+}
+
+/* Příkazy */
+.game-commands__header {
+  background: transparent;
+  border: none;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1rem;
+  color: inherit;
+}
+
+.game-commands__content {
+  border-top: 1px solid rgba(52, 211, 153, 0.3);
+  padding-top: 1rem;
+}
+
+.game-commands__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.game-commands__subtitle {
+  color: #a7f3d0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.game-command {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-command__description {
+  color: white;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.game-command__time {
+  color: #facc15;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.game-commands__more {
+  text-align: center;
+  color: #a7f3d0;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(52, 211, 153, 0.2);
 }
 
 /* Footer */
 .game-footer {
   background-color: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(52, 211, 153, 0.3);
   padding: 1rem;
   margin-top: 2rem;
   position: relative;
@@ -360,7 +663,7 @@
 }
 
 .game-footer__container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   text-align: center;
 }
@@ -368,55 +671,65 @@
 .game-footer__text {
   color: #a7f3d0;
   font-size: 0.875rem;
-  margin: 0;
+  margin: 0.25rem 0;
 }
 
 /* Responsive design */
+@media (max-width: 1200px) {
+  .game-layout {
+    grid-template-columns: 200px 1fr;
+  }
+  
+  .game-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .game-header {
-    padding: 0.75rem;
+  .game-layout {
+    grid-template-columns: 1fr;
   }
   
   .game-header__container {
     flex-direction: column;
     gap: 1rem;
-    text-align: center;
   }
   
-  .game-header__stats-section {
+  .game-header__nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .game-project__container {
     flex-direction: column;
+    align-items: stretch;
     gap: 0.5rem;
   }
   
-  .game-main {
-    padding: 1rem;
+  .game-buildings__grid {
+    grid-template-columns: 1fr;
   }
   
-  .game-menu__card,
-  .game-playing__card,
-  .game-paused__card,
-  .game-finished__card {
-    padding: 1.5rem;
+  .game-commands__grid {
+    grid-template-columns: 1fr;
   }
   
-  .game-area {
-    height: 20rem;
-  }
-  
-  .game-playing__controls {
-    flex-direction: column;
+  .game-army__list {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
 }
 
 @media (max-width: 480px) {
-  .game-menu__card,
-  .game-playing__card,
-  .game-paused__card,
-  .game-finished__card {
-    padding: 1rem;
+  .game-main {
+    padding: 0.5rem;
   }
   
-  .game-area {
-    height: 16rem;
+  .game-card {
+    padding: 0.75rem;
+  }
+  
+  .game-nav__item {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
   }
 }

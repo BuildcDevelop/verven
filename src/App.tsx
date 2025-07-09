@@ -1,21 +1,31 @@
+// src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
-// Import vašich komponent
+// Import všech komponent
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import GamePage from './components/GamePage';
-import MapPage from './components/MapPage';  // <-- Přidejte tento řádek
+import MapPage from './components/MapPage';
 
 function App(): JSX.Element {
   return (
     <Router>
       <div className="App">
         <Routes>
+          {/* Hlavní stránka */}
           <Route path="/" element={<HomePage />} />
+          
+          {/* Login stránka */}
           <Route path="/login" element={<LoginPage />} />
+          
+          {/* Herní stránka */}
           <Route path="/game" element={<GamePage />} />
-          <Route path="/map" element={<MapPage />} />  {/* <-- Přidejte tento řádek */}
+          
+          {/* Mapa */}
+          <Route path="/map" element={<MapPage />} />
+          
+          {/* 404 stránka */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
@@ -23,6 +33,7 @@ function App(): JSX.Element {
   );
 }
 
+// 404 komponenta
 function NotFound(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
