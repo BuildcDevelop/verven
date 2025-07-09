@@ -9,7 +9,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   
   const currentBuild = {
-    version: "v0.1.0-alpha",
+    version: "v0.1.0-dev",
     date: "8. července 2025",
     changes: [
       "Základní struktura projektu",
@@ -44,7 +44,7 @@ const HomePage = () => {
           
           <p className="homepage__subtitle">
             Vstupte do světa středověké strategie, kde budujete svou vlastní říši, 
-            spravujete osady a vedete svůj lid k prosperitě
+            spravujete državy a vedete svůj lid k prosperitě
           </p>
           
           {/* Akční tlačítka */}
@@ -72,7 +72,7 @@ const HomePage = () => {
         <div className="homepage__features">
           <div className="homepage__feature">
             <Shield className="homepage__feature-icon" size={48} />
-            <h3 className="homepage__feature-title">Stavba osady</h3>
+            <h3 className="homepage__feature-title">Stavba državy</h3>
             <p className="homepage__feature-description">Budujte a rozvíjejte své středověké sídlo</p>
           </div>
           
@@ -84,8 +84,8 @@ const HomePage = () => {
           
           <div className="homepage__feature">
             <Users className="homepage__feature-icon" size={48} />
-            <h3 className="homepage__feature-title">Správa lén</h3>
-            <p className="homepage__feature-description">Spravujete obyvatele a suroviny</p>
+            <h3 className="homepage__feature-title">Správa království</h3>
+            <p className="homepage__feature-description">Spravujete své državy a budujte svou armádu.</p>
           </div>
         </div>
 
