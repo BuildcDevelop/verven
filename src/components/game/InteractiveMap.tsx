@@ -1,252 +1,208 @@
-// src/components/game/InteractiveMap.tsx
-import React, { useState, useRef, useEffect } from 'react';
+// InteractiveMap.tsx - Interaktivní mapa hry
+import React, { useCallback, useRef, useEffect } from 'react';
+import { useGameStore } from '../../stores/gameStore';
+import './InteractiveMap.css';
+
 interface Province {
-id: string;
-name: string;
-type: 'own' | 'abandoned' | 'neutral' | 'ally' | 'enemy';
-position: { x: number; y: number };
-units?: {
-OFF: number;
-DEFF: number;
-SIEGE: number;
-SPEC: number;
-};
-owner?: string;
-alliance?: string;
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  population: number;
+  resources: string[];
+  color: string;
 }
-interface InteractiveMapProps {
-onProvinceClick?: (province: Province) => void;
-onProvinceHover?: (province: Province | null) => void;
-}
-const InteractiveMap: React.FC<InteractiveMapProps> = ({
-onProvinceClick,
-onProvinceHover
-}) => {
-const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-const [isDragging, setIsDragging] = useState(false);
-const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-const mapRef = useRef<HTMLDivElement>(null);
-// Ukázková data držav - později nahradit daty z Convex
-const provinces: Province[] = [
-{
-id: '1',
-name: 'Severní království',
-type: 'own',
-position: { x: 400, y: 300 },
-units: { OFF: 250, DEFF: 180, SIEGE: 5, SPEC: 12 },
-owner: 'Já',
-alliance: 'Modrá aliance'
-},
-{
-id: '2',
-name: 'Východní údolí',
-type: 'own',
-position: { x: 600, y: 350 },
-units: { OFF: 180, DEFF: 220, SIEGE: 3, SPEC: 8 },
-owner: 'Já',
-alliance: 'Modrá aliance'
-},
-{
-id: '3',
-name: 'Opuštěná vesnice',
-type: 'abandoned',
-position: { x: 300, y: 200 },
-owner: 'Opuštěno',
-alliance: 'Žádná'
-},
-{
-id: '4',
-name: 'Spojenecká pevnost',
-type: 'ally',
-position: { x: 500, y: 150 },
-owner: 'Spojenec123',
-alliance: 'Modrá aliance'
-},
-{
-id: '5',
-name: 'Nepřátelská citadela',
-type: 'enemy',
-position: { x: 200, y: 400 },
-owner: 'Nepřítel456',
-alliance: 'Červená horda'
-}
+
+// Ukázková data provincií
+const mockProvinces: Province[] = [
+  { id: 'p1', name: 'Královské město', x: 200, y: 150, population: 15000, resources: ['Zlato', 'Kámen'], color: '#4a90e2' },
+  { id: 'p2', name: 'Severní lesy', x: 150, y: 100, population: 8000, resources: ['Dřevo', 'Jídlo'], color: '#28a745' },
+  { id: 'p3', name: 'Východní hory', x: 300, y: 120, population: 5000, resources: ['Železo', 'Kámen'], color: '#6c757d' },
+  { id: 'p4', name: 'Jižní údolí', x: 180, y: 220, population: 12000, resources: ['Jídlo', 'Zlato'], color: '#ffc107' },
+  { id: 'p5', name: 'Západní pláně', x: 100, y: 180, population: 9000, resources: ['Jídlo', 'Koně'], color: '#20c997' },
+  { id: 'p6', name: 'Centrální tvrz', x: 220, y: 180, population: 18000, resources: ['Zlato', 'Železo'], color: '#dc3545' },
 ];
-const handleProvinceClick = (province: Province) => {
-setSelectedProvince(province);
-onProvinceClick?.(province);
-};
-const handleProvinceHover = (province: Province | null) => {
-onProvinceHover?.(province);
-};
-const handleMouseDown = (e: React.MouseEvent) => {
-if (e.target === mapRef.current) {
-setIsDragging(true);
-setDragStart({ x: e.clientX - dragPosition.x, y: e.clientY - dragPosition.y });
-}
-};
-const handleMouseMove = (e: React.MouseEvent) => {
-if (isDragging) {
-setDragPosition({
-x: e.clientX - dragStart.x,
-y: e.clientY - dragStart.y
-});
-}
-};
-const handleMouseUp = () => {
-setIsDragging(false);
-};
-const getProvinceColor = (type: Province['type']) => {
-switch (type) {
-case 'own': return '#3498db';
-case 'abandoned': return '#ecf0f1';
-case 'neutral': return '#9b59b6';
-case 'ally': return '#27ae60';
-case 'enemy': return '#e74c3c';
-default: return '#95a5a6';
-}
-};
-return (
-<div
-className="interactive-map"
-style={{
-width: '100%',
-height: '100%',
-position: 'relative',
-overflow: 'hidden',
-cursor: isDragging ? 'grabbing' : 'grab',
-background: 'linear-gradient(45deg, #34495e, #2c3e50)'
-}}
-onMouseDown={handleMouseDown}
-onMouseMove={handleMouseMove}
-onMouseUp={handleMouseUp}
-onMouseLeave={handleMouseUp}
-ref={mapRef}
->
-{/* Grid pattern */}
-<div
-  style={{
-    width: '200%',
-    height: '200%',
-    backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-    backgroundSize: '50px 50px',
-    transform: `translate(${dragPosition.x}px, ${dragPosition.y}px)`
-  }}
->
-  {/* ... */}
-</div>
-  {/* Provinces */}
-  <div
-    style={{
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      transform: `translate(${dragPosition.x}px, ${dragPosition.y}px)`
-    }}
-  >
-    {provinces.map(province => (
-      <div
-        key={province.id}
-        className="province"
-        style={{
-          position: 'absolute',
-          left: province.position.x,
-          top: province.position.y,
-          width: 80,
-          height: 80,
-          borderRadius: 10,
-          border: `2px solid ${getProvinceColor(province.type)}`,
-          background: `linear-gradient(135deg, ${getProvinceColor(province.type)}, ${getProvinceColor(province.type)}dd)`,
-          color: province.type === 'abandoned' ? '#2c3e50' : 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          fontSize: '0.8rem',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          boxShadow: `0 4px 15px ${getProvinceColor(province.type)}30`,
-          transition: 'all 0.3s ease',
-          transform: selectedProvince?.id === province.id ? 'scale(1.1)' : 'scale(1)'
-        }}
-        onClick={() => handleProvinceClick(province)}
-        onMouseEnter={() => handleProvinceHover(province)}
-        onMouseLeave={() => handleProvinceHover(null)}
+
+const InteractiveMap: React.FC = () => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const lastMousePos = useRef({ x: 0, y: 0 });
+
+  // Store state
+  const mapX = useGameStore((state) => state.mapX);
+  const mapY = useGameStore((state) => state.mapY);
+  const mapScale = useGameStore((state) => state.mapScale);
+  const selectedProvince = useGameStore((state) => state.selectedProvince);
+  
+  // Store actions
+  const setMapPosition = useGameStore((state) => state.setMapPosition);
+  const setMapScale = useGameStore((state) => state.setMapScale);
+  const setIsDragging = useGameStore((state) => state.setIsDragging);
+  const setSelectedProvince = useGameStore((state) => state.setSelectedProvince);
+  const openWindow = useGameStore((state) => state.openWindow);
+
+  // Mouse handlers for map dragging
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) { // Left mouse button
+      isDraggingRef.current = true;
+      lastMousePos.current = { x: e.clientX, y: e.clientY };
+      setIsDragging(true);
+      
+      if (mapRef.current) {
+        mapRef.current.style.cursor = 'grabbing';
+      }
+    }
+  }, [setIsDragging]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDraggingRef.current) {
+      const deltaX = e.clientX - lastMousePos.current.x;
+      const deltaY = e.clientY - lastMousePos.current.y;
+      
+      setMapPosition(mapX + deltaX, mapY + deltaY);
+      lastMousePos.current = { x: e.clientX, y: e.clientY };
+    }
+  }, [mapX, mapY, setMapPosition]);
+
+  const handleMouseUp = useCallback(() => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      
+      if (mapRef.current) {
+        mapRef.current.style.cursor = 'grab';
+      }
+    }
+  }, [setIsDragging]);
+
+  // Wheel handler for zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setMapScale(mapScale + delta);
+  }, [mapScale, setMapScale]);
+
+  // Province click handler
+  const handleProvinceClick = useCallback((province: Province, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isDraggingRef.current) {
+      setSelectedProvince(province);
+      
+      // Otevřít okno s detaily provincie
+      openWindow({
+        type: 'province-detail',
+        title: `${province.name}`,
+        position: { x: 400, y: 100 },
+        size: { width: 350, height: 280 }
+      });
+    }
+  }, [setSelectedProvince, openWindow]);
+
+  // Event listeners
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => handleMouseMove(e);
+    const handleGlobalMouseUp = () => handleMouseUp();
+
+    if (isDraggingRef.current) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  const mapStyle = {
+    transform: `translate(${mapX}px, ${mapY}px) scale(${mapScale})`,
+    transformOrigin: 'center center',
+  };
+
+  return (
+    <div className="interactive-map">
+      <div className="map-controls">
+        <button 
+          className="map-control-btn"
+          onClick={() => setMapScale(mapScale + 0.2)}
+          disabled={mapScale >= 3}
+        >
+          +
+        </button>
+        <span className="map-zoom-level">{Math.round(mapScale * 100)}%</span>
+        <button 
+          className="map-control-btn"
+          onClick={() => setMapScale(mapScale - 0.2)}
+          disabled={mapScale <= 0.5}
+        >
+          -
+        </button>
+        <button 
+          className="map-control-btn map-control-center"
+          onClick={() => {
+            setMapPosition(0, 0);
+            setMapScale(1);
+          }}
+        >
+          🎯
+        </button>
+      </div>
+
+      <div 
+        ref={mapRef}
+        className="map-container"
+        onMouseDown={handleMouseDown}
+        onWheel={handleWheel}
+        style={{ cursor: 'grab' }}
       >
-        <div style={{ fontSize: '0.7rem', marginBottom: 4, lineHeight: 1.1 }}>
-          {province.name}
-        </div>
-        {province.units && (
-          <div style={{ fontSize: '1.2rem', color: '#f39c12' }}>
-            ⚔️ {province.units.OFF}
+        <div className="map-content" style={mapStyle}>
+          {/* Background terrain */}
+          <div className="map-background">
+            <div className="terrain-rivers"></div>
+            <div className="terrain-mountains"></div>
+            <div className="terrain-forests"></div>
           </div>
-        )}
-      </div>
-    ))}
-  </div>
 
-  {/* Map controls */}
-  <div 
-    style={{
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem'
-    }}
-  >
-    <button
-      onClick={() => setDragPosition({ x: 0, y: 0 })}
-      style={{
-        padding: '0.5rem',
-        background: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        border: '1px solid rgba(52, 211, 153, 0.3)',
-        borderRadius: '0.5rem',
-        cursor: 'pointer'
-      }}
-    >
-      🎯 Střed
-    </button>
-  </div>
+          {/* Provinces */}
+          {mockProvinces.map((province) => (
+            <div
+              key={province.id}
+              className={`province ${selectedProvince?.id === province.id ? 'province--selected' : ''}`}
+              style={{
+                left: province.x,
+                top: province.y,
+                backgroundColor: province.color,
+              }}
+              onClick={(e) => handleProvinceClick(province, e)}
+              title={`${province.name} - ${province.population.toLocaleString()} obyvatel`}
+            >
+              <div className="province-name">{province.name}</div>
+              <div className="province-population">{(province.population / 1000).toFixed(0)}k</div>
+            </div>
+          ))}
 
-  {/* Legend */}
-  <div
-    style={{
-      position: 'absolute',
-      bottom: 10,
-      left: 10,
-      background: 'rgba(0,0,0,0.8)',
-      padding: '1rem',
-      borderRadius: '0.5rem',
-      border: '1px solid rgba(52, 211, 153, 0.3)',
-      color: 'white',
-      fontSize: '0.8rem'
-    }}
-  >
-    <div style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>Legenda:</div>
-    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-        <div style={{ width: 12, height: 12, background: '#3498db', borderRadius: '50%' }}></div>
-        Vlastní
+          {/* Grid for reference */}
+          <div className="map-grid">
+            {Array.from({ length: 20 }, (_, i) => (
+              <div key={`grid-v-${i}`} className="grid-line grid-line--vertical" style={{ left: i * 50 }} />
+            ))}
+            {Array.from({ length: 15 }, (_, i) => (
+              <div key={`grid-h-${i}`} className="grid-line grid-line--horizontal" style={{ top: i * 50 }} />
+            ))}
+          </div>
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-        <div style={{ width: 12, height: 12, background: '#27ae60', borderRadius: '50%' }}></div>
-        Spojenec
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-        <div style={{ width: 12, height: 12, background: '#e74c3c', borderRadius: '50%' }}></div>
-        Nepřítel
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-        <div style={{ width: 12, height: 12, background: '#ecf0f1', borderRadius: '50%' }}></div>
-        Opuštěné
-      </div>
+
+      {selectedProvince && (
+        <div className="province-info-panel">
+          <h3>{selectedProvince.name}</h3>
+          <p><strong>Obyvatelé:</strong> {selectedProvince.population.toLocaleString()}</p>
+          <p><strong>Zdroje:</strong> {selectedProvince.resources.join(', ')}</p>
+        </div>
+      )}
     </div>
-  </div>
-</div>
-);
+  );
 };
+
 export default InteractiveMap;

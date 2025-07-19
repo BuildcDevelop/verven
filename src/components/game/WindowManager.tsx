@@ -1,342 +1,250 @@
-// src/components/game/WindowManager.tsx
-import React from 'react';
-import FloatingWindow from './FloatingWindow';
-import { useWindows } from '../../stores/gameStore';
-import { GameWindow } from '../../types/game';
-import './FloatingWindow.css';
+// WindowManager.tsx - Opravená komponenta bez nekonečné smyčky
+import React, { useCallback, useMemo } from 'react';
+import { useGameStore } from '../../stores/gameStore';
+import './WindowManager.css';
 
-/* WindowContent.css - inline pro teď */
-const windowContentStyles = `
-.army-detail-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+interface GameWindow {
+  id: string;
+  type: string;
+  title: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  isVisible: boolean;
+  isMinimized: boolean;
 }
 
-.army-detail-header h3 {
-  color: #34d399;
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin: 0 0 0.5rem 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+// Draggable Window Component
+interface DraggableWindowProps {
+  window: GameWindow;
+  isActive: boolean;
+  onBringToFront: (id: string) => void;
+  onClose: (id: string) => void;
+  onToggleMinimize: (id: string) => void;
+  onPositionChange: (id: string, position: { x: number; y: number }) => void;
 }
 
-.coordinates {
-  color: #a7f3d0;
-  font-size: 0.9rem;
-  margin: 0;
-  opacity: 0.8;
-}
+const DraggableWindow: React.FC<DraggableWindowProps> = ({
+  window,
+  isActive,
+  onBringToFront,
+  onClose,
+  onToggleMinimize,
+  onPositionChange,
+}) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
 
-.army-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.army-stat {
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.3), rgba(52, 211, 153, 0.1));
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.army-stat:hover {
-  border-color: rgba(52, 211, 153, 0.4);
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.4), rgba(52, 211, 153, 0.2));
-  transform: translateY(-2px);
-}
-
-.army-stat-icon {
-  font-size: 1.5rem;
-  min-width: 2rem;
-  text-align: center;
-}
-
-.army-stat-info {
-  flex: 1;
-}
-
-.army-stat-label {
-  color: #facc15;
-  font-weight: bold;
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
-}
-
-.army-stat-value {
-  color: white;
-  font-size: 1.4rem;
-  font-weight: bold;
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.army-stat-desc {
-  color: #a7f3d0;
-  font-size: 0.75rem;
-  opacity: 0.8;
-  line-height: 1.2;
-}
-
-.player-detail-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(52, 211, 153, 0.2);
-}
-
-.player-detail-header h3 {
-  color: #34d399;
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin: 0 0 0.5rem 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.player-info-item {
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.3), rgba(52, 211, 153, 0.1));
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-}
-
-.player-info-item:hover {
-  border-color: rgba(52, 211, 153, 0.4);
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.4), rgba(52, 211, 153, 0.2));
-}
-
-.player-info-icon {
-  font-size: 1.5rem;
-  min-width: 2rem;
-  text-align: center;
-}
-
-.player-info-content {
-  flex: 1;
-}
-
-.player-info-label {
-  color: #facc15;
-  font-weight: bold;
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
-}
-
-.player-info-value {
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .army-stats {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .army-stat,
-  .player-info-item {
-    padding: 0.75rem;
-    gap: 0.5rem;
-  }
-  
-  .army-stat-icon,
-  .player-info-icon {
-    font-size: 1.25rem;
-    min-width: 1.5rem;
-  }
-  
-  .army-stat-value {
-    font-size: 1.2rem;
-  }
-  
-  .army-detail-header h3,
-  .player-detail-header h3 {
-    font-size: 1.1rem;
-  }
-}
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.textContent = windowContentStyles;
-  document.head.appendChild(styleElement);
-}
-
-// Content komponenty pro různé typy oken
-const ArmyDetailContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  const { province } = window.content || {};
-  
-  if (!province) {
-    return <div>Žádné data o provincii</div>;
-  }
-
-  if (province.type === 'own') {
-    // Vlastní provincie - zobraz vojenské jednotky
-    const army = province.army || { OFF: 0, DEFF: 0, SIEGE: 0, SPEC: 0 };
-    
-    return (
-      <div className="army-detail">
-        <div className="army-detail-header">
-          <h3>{province.name}</h3>
-          <p className="coordinates">({province.gridX}/{province.gridY})</p>
-        </div>
-        
-        <div className="army-stats">
-          <div className="army-stat">
-            <div className="army-stat-icon">⚔️</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">OFF</div>
-              <div className="army-stat-value">{army.OFF}</div>
-              <div className="army-stat-desc">Útočné jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">🛡️</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">DEFF</div>
-              <div className="army-stat-value">{army.DEFF}</div>
-              <div className="army-stat-desc">Obranné jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">🏰</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">SIEGE</div>
-              <div className="army-stat-value">{army.SIEGE}</div>
-              <div className="army-stat-desc">Obléhací jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">✨</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">SPEC</div>
-              <div className="army-stat-value">{army.SPEC}</div>
-              <div className="army-stat-desc">Speciální jednotky</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  } else {
-    // Cizí provincie - zobraz informace o hráči
-    const player = province.player || { player: 'Neznámý', alliance: 'Žádná' };
-    
-    return (
-      <div className="player-detail">
-        <div className="player-detail-header">
-          <h3>{province.name}</h3>
-          <p className="coordinates">({province.gridX}/{province.gridY})</p>
-        </div>
-        
-        <div className="player-info">
-          <div className="player-info-item">
-            <div className="player-info-icon">👤</div>
-            <div className="player-info-content">
-              <div className="player-info-label">Vládce</div>
-              <div className="player-info-value">{player.player}</div>
-            </div>
-          </div>
-          
-          <div className="player-info-item">
-            <div className="player-info-icon">🤝</div>
-            <div className="player-info-content">
-              <div className="player-info-label">Aliance</div>
-              <div className="player-info-value">{player.alliance}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-};
-
-const VillageOverviewContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="village-overview">
-      <h3>Přehled vesnice</h3>
-      <p>Zde bude přehled vesnice s budovami, produkcí a jednotkami.</p>
-      {/* TODO: Implementovat detailní přehled vesnice */}
-    </div>
-  );
-};
-
-const AllianceContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="alliance-overview">
-      <h3>Aliance</h3>
-      <p>Zde bude správa aliance, členové, eventy a komunikace.</p>
-      {/* TODO: Implementovat alianční systém */}
-    </div>
-  );
-};
-
-const SettingsContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="settings">
-      <h3>Nastavení</h3>
-      <p>Zde budou herní nastavení, audio preference a ovládání.</p>
-      {/* TODO: Implementovat nastavení */}
-    </div>
-  );
-};
-
-// Mapping typů oken na komponenty
-const windowComponents = {
-  'army-detail': ArmyDetailContent,
-  'village-overview': VillageOverviewContent,
-  'alliance': AllianceContent,
-  'settings': SettingsContent,
-} as const;
-
-const WindowManager: React.FC = () => {
-  const { windows, windowOrder } = useWindows();
-
-  const renderWindowContent = (window: GameWindow) => {
-    const ContentComponent = windowComponents[window.type];
-    
-    if (!ContentComponent) {
-      return <div>Neznámý typ okna: {window.type}</div>;
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('window-header')) {
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - window.position.x,
+        y: e.clientY - window.position.y,
+      });
+      onBringToFront(window.id);
     }
-    
-    return <ContentComponent window={window} />;
-  };
+  }, [window.position, window.id, onBringToFront]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      const newPosition = {
+        x: Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragOffset.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 200, e.clientY - dragOffset.y)),
+      };
+      onPositionChange(window.id, newPosition);
+    }
+  }, [isDragging, dragOffset, window.id, onPositionChange]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  const windowStyle = useMemo(() => ({
+    position: 'absolute' as const,
+    left: window.position.x,
+    top: window.position.y,
+    width: window.size.width,
+    height: window.isMinimized ? 'auto' : window.size.height,
+    zIndex: isActive ? 1000 : 900,
+  }), [window.position, window.size, window.isMinimized, isActive]);
+
+  if (!window.isVisible) return null;
+
+  return (
+    <div
+      className={`game-window ${isActive ? 'game-window--active' : ''} ${window.isMinimized ? 'game-window--minimized' : ''}`}
+      style={windowStyle}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="window-header">
+        <h3 className="window-title">{window.title}</h3>
+        <div className="window-controls">
+          <button
+            className="window-control window-control--minimize"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleMinimize(window.id);
+            }}
+          >
+            {window.isMinimized ? '□' : '_'}
+          </button>
+          <button
+            className="window-control window-control--close"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose(window.id);
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      {!window.isMinimized && (
+        <div className="window-content">
+          {renderWindowContent(window.type)}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Window content renderer
+const renderWindowContent = (type: string) => {
+  const selectedProvince = useGameStore((state) => state.selectedProvince);
+  
+  switch (type) {
+    case 'inventory':
+      return (
+        <div className="window-content-inventory">
+          <h4>Inventář</h4>
+          <div className="inventory-grid">
+            <div className="inventory-item">Zlato: 1,250</div>
+            <div className="inventory-item">Dřevo: 45</div>
+            <div className="inventory-item">Kámen: 32</div>
+            <div className="inventory-item">Jídlo: 89</div>
+          </div>
+        </div>
+      );
+    case 'buildings':
+      return (
+        <div className="window-content-buildings">
+          <h4>Budovy</h4>
+          <div className="buildings-list">
+            <div className="building-item">Kasárna - Úroveň 2</div>
+            <div className="building-item">Trh - Úroveň 1</div>
+            <div className="building-item">Městské hradby - Úroveň 3</div>
+          </div>
+        </div>
+      );
+    case 'research':
+      return (
+        <div className="window-content-research">
+          <h4>Výzkum</h4>
+          <div className="research-tree">
+            <div className="research-item research-item--completed">Zemědělství</div>
+            <div className="research-item research-item--in-progress">Kovářství (65%)</div>
+            <div className="research-item research-item--available">Architektura</div>
+          </div>
+        </div>
+      );
+    case 'province-detail':
+      return (
+        <div className="window-content-province">
+          <h4>Detail provincie</h4>
+          {selectedProvince ? (
+            <div className="province-detail">
+              <div className="province-stat">
+                <strong>Název:</strong> {selectedProvince.name}
+              </div>
+              <div className="province-stat">
+                <strong>Obyvatelé:</strong> {selectedProvince.population.toLocaleString()}
+              </div>
+              <div className="province-stat">
+                <strong>Zdroje:</strong> {selectedProvince.resources.join(', ')}
+              </div>
+              <div className="province-actions">
+                <button className="province-action-btn">Upravit</button>
+                <button className="province-action-btn">Obchodovat</button>
+                <button className="province-action-btn">Rekrutovat</button>
+              </div>
+            </div>
+          ) : (
+            <p>Žádná provincie není vybrána.</p>
+          )}
+        </div>
+      );
+    default:
+      return (
+        <div className="window-content-default">
+          <p>Obsah okna typu: {type}</p>
+        </div>
+      );
+  }
+};
+
+// Main WindowManager Component
+const WindowManager: React.FC = () => {
+  // Použijeme jednotlivé selektory místo složeného objektu
+  const windows = useGameStore((state) => state.windows);
+  const activeWindow = useGameStore((state) => state.activeWindow);
+  const windowOrder = useGameStore((state) => state.windowOrder);
+  
+  // Actions
+  const bringToFront = useGameStore((state) => state.bringToFront);
+  const closeWindow = useGameStore((state) => state.closeWindow);
+  const toggleWindow = useGameStore((state) => state.toggleWindow);
+  const setWindowPosition = useGameStore((state) => state.setWindowPosition);
+
+  // Memoizované callback funkce
+  const handleBringToFront = useCallback((id: string) => {
+    bringToFront(id);
+  }, [bringToFront]);
+
+  const handleClose = useCallback((id: string) => {
+    closeWindow(id);
+  }, [closeWindow]);
+
+  const handleToggleMinimize = useCallback((id: string) => {
+    toggleWindow(id);
+  }, [toggleWindow]);
+
+  const handlePositionChange = useCallback((id: string, position: { x: number; y: number }) => {
+    setWindowPosition(id, position);
+  }, [setWindowPosition]);
+
+  // Seřadíme okna podle windowOrder
+  const sortedWindows = useMemo(() => {
+    return [...windows].sort((a, b) => {
+      const aIndex = windowOrder.indexOf(a.id);
+      const bIndex = windowOrder.indexOf(b.id);
+      return aIndex - bIndex;
+    });
+  }, [windows, windowOrder]);
 
   return (
     <div className="window-manager">
-      {windows.map((window) => {
-        const zIndex = 1000 + windowOrder.indexOf(window.id);
-        
-        return (
-          <FloatingWindow
-            key={window.id}
-            window={window}
-            zIndex={zIndex}
-          >
-            {renderWindowContent(window)}
-          </FloatingWindow>
-        );
-      })}
+      {sortedWindows.map((window) => (
+        <DraggableWindow
+          key={window.id}
+          window={window}
+          isActive={activeWindow === window.id}
+          onBringToFront={handleBringToFront}
+          onClose={handleClose}
+          onToggleMinimize={handleToggleMinimize}
+          onPositionChange={handlePositionChange}
+        />
+      ))}
     </div>
   );
 };

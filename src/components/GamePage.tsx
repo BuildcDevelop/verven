@@ -1,4 +1,4 @@
-// Kompletní opravený GamePage.tsx bez chyby setUser
+// Kompletní opravený GamePage.tsx s tlačítky pro okna
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../stores/gameStore';
@@ -20,6 +20,7 @@ const GamePage: React.FC = () => {
   const user = useGameStore((state) => state.user);
   const setUser = useGameStore((state) => state.setUser);
   const resetGameState = useGameStore((state) => state.resetGameState);
+  const openWindow = useGameStore((state) => state.openWindow);
 
   const { playClick } = useGameAudio();
 
@@ -57,6 +58,42 @@ const GamePage: React.FC = () => {
 
   const handleOpenSettings = (): void => {
     playClick();
+    openWindow({
+      type: 'settings',
+      title: 'Nastavení',
+      position: { x: 400, y: 100 },
+      size: { width: 350, height: 300 }
+    });
+  };
+
+  const handleOpenInventory = (): void => {
+    playClick();
+    openWindow({
+      type: 'inventory',
+      title: 'Inventář',
+      position: { x: 100, y: 100 },
+      size: { width: 350, height: 250 }
+    });
+  };
+
+  const handleOpenBuildings = (): void => {
+    playClick();
+    openWindow({
+      type: 'buildings',
+      title: 'Budovy',
+      position: { x: 200, y: 150 },
+      size: { width: 400, height: 300 }
+    });
+  };
+
+  const handleOpenResearch = (): void => {
+    playClick();
+    openWindow({
+      type: 'research',
+      title: 'Výzkum',
+      position: { x: 300, y: 200 },
+      size: { width: 380, height: 280 }
+    });
   };
 
   if (loading) {
@@ -82,11 +119,20 @@ const GamePage: React.FC = () => {
             <p className="game-header__welcome">Vítej, {user?.username}!</p>
           </div>
           <div className="game-header__controls">
+            <button onClick={handleOpenInventory} className="game-header__button game-header__button--secondary">
+              📦 Inventář
+            </button>
+            <button onClick={handleOpenBuildings} className="game-header__button game-header__button--secondary">
+              🏛️ Budovy
+            </button>
+            <button onClick={handleOpenResearch} className="game-header__button game-header__button--secondary">
+              🔬 Výzkum
+            </button>
             <button onClick={handleOpenSettings} className="game-header__button game-header__button--secondary">
-              Nastavení
+              ⚙️ Nastavení
             </button>
             <button onClick={handleLogout} className="game-header__button game-header__button--logout">
-              Odhlásit se
+              🚪 Odhlásit se
             </button>
           </div>
         </div>

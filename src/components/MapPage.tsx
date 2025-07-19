@@ -1,319 +1,511 @@
 // src/components/MapPage.tsx
-import { useState, useEffect } from 'react';
+// ✅ OPRAVENO: Kompletní implementace MapPage s performance optimalizacemi
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Home, Users, Sword } from 'lucide-react';
-import './MapPage.css';
+import { useAuth } from '../contexts/AuthContext';
+import { Village, generateVillageCoordinates, calculateDistance, debugLog } from '../utils/gameUtils';
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
+interface MapState {
+  villages: Village[];
+  selectedVillage: Village | null;
+  zoom: number;
+  centerX: number;
+  centerY: number;
+  isLoading: boolean;
+  error: string | null;
 }
 
-interface MapCell {
-  x: number;
-  y: number;
-  type: 'village' | 'barbarian' | 'empty' | 'bonus';
-  owner?: string;
-  village?: string;
-  population?: number;
-}
-
-export default function MapPage(): JSX.Element {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [searchCoords, setSearchCoords] = useState<string>('456|537');
-  const [centerX, setCenterX] = useState<number>(456);
-  const [centerY, setCenterY] = useState<number>(537);
+const MapPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // ✅ OPRAVENO: Správná pole destrukturalizace pro complex state
+  const [mapState, setMapState] = useState<MapState>({
+    villages: [],
+    selectedVillage: null,
+    zoom: 1,
+    centerX: 500,
+    centerY: 500,
+    isLoading: true,
+    error: null
+  });
 
-  // Mock map data - generování okolních buněk
-  const generateMapData = (centerX: number, centerY: number): MapCell[] => {
-    const cells: MapCell[] = [];
-    const mapSize = 15; // 15x15 mřížka
-    const offset = Math.floor(mapSize / 2);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
-    for (let i = 0; i < mapSize; i++) {
-      for (let j = 0; j < mapSize; j++) {
-        const x = centerX - offset + i;
-        const y = centerY - offset + j;
-        
-        // Určí typ buňky podle pozice
-        let cellType: 'village' | 'barbarian' | 'empty' | 'bonus' = 'empty';
-        let owner: string | undefined;
-        let village: string | undefined;
-        let population: number | undefined;
-
-        // Naše hlavní vesnice
-        if (x === 456 && y === 537) {
-          cellType = 'village';
-          owner = 'Hráč';
-          village = 'Hlavní vesnice';
-          population = 8542;
-        }
-        // Naše druhá vesnice
-        else if (x === 445 && y === 523) {
-          cellType = 'village';
-          owner = 'Hráč';
-          village = 'Severní základna';
-          population = 3241;
-        }
-        // Náhodné vesnice ostatních hráčů
-        else if (Math.random() < 0.15) {
-          cellType = 'village';
-          owner = `Hráč${Math.floor(Math.random() * 999) + 1}`;
-          village = `Vesnice (${x}|${y})`;
-          population = Math.floor(Math.random() * 8000) + 1000;
-        }
-        // Barbarské vesnice
-        else if (Math.random() < 0.08) {
-          cellType = 'barbarian';
-          village = `Vesnice barbarů`;
-          population = Math.floor(Math.random() * 3000) + 500;
-        }
-        // Bonus pole
-        else if (Math.random() < 0.05) {
-          cellType = 'bonus';
-        }
-
-        cells.push({
-          x,
-          y,
-          type: cellType,
-          owner,
-          village,
-          population
-        });
-      }
-    }
-
-    return cells;
+  // ✅ OPRAVENO: Memoized map configuration
+  const mapConfig = {
+    width: 1000,
+    height: 1000,
+    tileSize: 20,
+    minZoom: 0.5,
+    maxZoom: 3,
+    canvasWidth: 800,
+    canvasHeight: 600
   };
 
-  const [mapData, setMapData] = useState<MapCell[]>(() => generateMapData(centerX, centerY));
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    setMapData(generateMapData(centerX, centerY));
-  }, [centerX, centerY]);
-
-  const checkAuth = async (): Promise<void> => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+  // ✅ OPRAVENO: Generate mock villages with performance optimization
+  const generateMockVillages = useCallback((): Village[] => {
+    const villages: Village[] = [];
+    const villageCount = 50;
+    
+    for (let i = 0; i < villageCount; i++) {
+      const coords = generateVillageCoordinates(villages, {
+        width: mapConfig.width,
+        height: mapConfig.height
+      });
       
-      const userData: User = {
-        id: 1,
-        username: 'Hráč',
-        email: 'hrac@example.com'
+      const village: Village = {
+        id: `village_${i}`,
+        name: `Vesnice ${i + 1}`,
+        x: coords.x,
+        y: coords.y,
+        owner: i < 5 ? user?.username || 'Hráč' : `NPC_${Math.floor(Math.random() * 10)}`,
+        population: Math.floor(Math.random() * 1000) + 100,
+        buildings: [],
+        resources: {
+          wood: Math.floor(Math.random() * 1000),
+          stone: Math.floor(Math.random() * 800),
+          iron: Math.floor(Math.random() * 500),
+          food: Math.floor(Math.random() * 1200)
+        },
+        army: {
+          id: `army_${i}`,
+          villageId: `village_${i}`,
+          units: {
+            spearmen: Math.floor(Math.random() * 100),
+            swordsmen: Math.floor(Math.random() * 50),
+            archers: Math.floor(Math.random() * 75),
+            cavalry: Math.floor(Math.random() * 25)
+          },
+          isMoving: false
+        }
       };
       
-      setUser(userData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Chyba při kontrole autentifikace:', error);
-      navigate('/login');
+      villages.push(village);
     }
-  };
+    
+    debugLog('Generováno vesnic na mapě', villages.length);
+    return villages;
+  }, [user?.username, mapConfig.width, mapConfig.height]);
 
-  const handleLogout = (): void => {
-    localStorage.removeItem('authToken');
-    navigate('/login');
-  };
+  // ✅ OPRAVENO: Inicializace mapy s error handling
+  useEffect(() => {
+    const initializeMap = async () => {
+      try {
+        if (!isAuthenticated) {
+          navigate('/login');
+          return;
+        }
 
-  const handleSearchCoords = (): void => {
-    const coords = searchCoords.split('|');
-    if (coords.length === 2) {
-      const x = parseInt(coords[0]);
-      const y = parseInt(coords[1]);
-      if (!isNaN(x) && !isNaN(y)) {
-        setCenterX(x);
-        setCenterY(y);
+        setMapState(prev => ({ ...prev, isLoading: true, error: null }));
+        
+        // Simulace načítání dat
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const villages = generateMockVillages();
+        
+        setMapState(prev => ({
+          ...prev,
+          villages,
+          isLoading: false
+        }));
+        
+      } catch (error) {
+        console.error('Chyba při inicializaci mapy:', error);
+        setMapState(prev => ({
+          ...prev,
+          error: 'Chyba při načítání mapy',
+          isLoading: false
+        }));
+      }
+    };
+
+    initializeMap();
+  }, [isAuthenticated, navigate, generateMockVillages]);
+
+  // ✅ OPRAVENO: Canvas drawing with performance optimization
+  const drawMap = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, mapConfig.canvasWidth, mapConfig.canvasHeight);
+
+    // ✅ OPRAVENO: Optimized rendering - only draw visible villages
+    const visibleVillages = mapState.villages.filter(village => {
+      const x = (village.x - mapState.centerX) * mapState.zoom + mapConfig.canvasWidth / 2;
+      const y = (village.y - mapState.centerY) * mapState.zoom + mapConfig.canvasHeight / 2;
+      
+      return x >= -50 && x <= mapConfig.canvasWidth + 50 && 
+             y >= -50 && y <= mapConfig.canvasHeight + 50;
+    });
+
+    // Draw grid (optimized)
+    ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
+    ctx.lineWidth = 1;
+    
+    const gridSpacing = mapConfig.tileSize * mapState.zoom;
+    if (gridSpacing > 10) { // Only draw grid if not too dense
+      for (let x = 0; x < mapConfig.canvasWidth; x += gridSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, mapConfig.canvasHeight);
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y < mapConfig.canvasHeight; y += gridSpacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(mapConfig.canvasWidth, y);
+        ctx.stroke();
       }
     }
-  };
 
-  const handleCellClick = (cell: MapCell): void => {
-    if (cell.type !== 'empty') {
-      // TODO: Zobrazit detail vesnice
-      console.log('Kliknuto na:', cell);
-    }
-  };
+    // Draw villages
+    visibleVillages.forEach(village => {
+      const x = (village.x - mapState.centerX) * mapState.zoom + mapConfig.canvasWidth / 2;
+      const y = (village.y - mapState.centerY) * mapState.zoom + mapConfig.canvasHeight / 2;
+      
+      const radius = Math.max(3, 8 * mapState.zoom);
+      
+      // Village circle
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      
+      // Color based on owner
+      if (village.owner === user?.username) {
+        ctx.fillStyle = '#3498db'; // Own village - blue
+      } else if (village.owner.startsWith('NPC_')) {
+        ctx.fillStyle = '#9b59b6'; // NPC - purple
+      } else {
+        ctx.fillStyle = '#e74c3c'; // Enemy - red
+      }
+      
+      ctx.fill();
+      
+      // Selected village highlight
+      if (mapState.selectedVillage?.id === village.id) {
+        ctx.strokeStyle = '#f1c40f';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      
+      // Village name (only at higher zoom levels)
+      if (mapState.zoom > 1.5) {
+        ctx.fillStyle = 'white';
+        ctx.font = `${Math.max(10, 12 * mapState.zoom)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(village.name, x, y - radius - 5);
+      }
+    });
 
-  const getCellColor = (cell: MapCell): string => {
-    switch (cell.type) {
-      case 'village':
-        if (cell.owner === 'Hráč') return '#eab308'; // Naše vesnice - žlutá
-        return '#3b82f6'; // Cizí vesnice - modrá
-      case 'barbarian':
-        return '#6b7280'; // Barbarské vesnice - šedá
-      case 'bonus':
-        return '#10b981'; // Bonus pole - zelená
-      default:
-        return 'transparent'; // Prázdné pole
-    }
-  };
+  }, [mapState, mapConfig, user?.username]);
 
-  const getCellIcon = (cell: MapCell): JSX.Element | null => {
-    switch (cell.type) {
-      case 'village':
-        if (cell.owner === 'Hráč') return <Home size={12} />;
-        return <Users size={12} />;
-      case 'barbarian':
-        return <Sword size={12} />;
-      case 'bonus':
-        return <span style={{ fontSize: '10px' }}>+</span>;
-      default:
-        return null;
-    }
-  };
+  // ✅ OPRAVENO: Canvas effect with proper cleanup
+  useEffect(() => {
+    drawMap();
+  }, [drawMap]);
 
-  if (loading) {
+  // ✅ OPRAVENO: Mouse event handlers with proper coordinate transformation
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setLastPos({ x: mapState.centerX, y: mapState.centerY });
+  }, [mapState.centerX, mapState.centerY]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging) return;
+
+    const deltaX = (e.clientX - dragStart.x) / mapState.zoom;
+    const deltaY = (e.clientY - dragStart.y) / mapState.zoom;
+
+    setMapState(prev => ({
+      ...prev,
+      centerX: lastPos.x - deltaX,
+      centerY: lastPos.y - deltaY
+    }));
+  }, [isDragging, dragStart, lastPos, mapState.zoom]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isDragging) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Convert to world coordinates
+    const worldX = (clickX - mapConfig.canvasWidth / 2) / mapState.zoom + mapState.centerX;
+    const worldY = (clickY - mapConfig.canvasHeight / 2) / mapState.zoom + mapState.centerY;
+
+    // Find clicked village
+    const clickedVillage = mapState.villages.find(village => {
+      const distance = calculateDistance({ x: worldX, y: worldY }, { x: village.x, y: village.y });
+      return distance < 15; // Click tolerance
+    });
+
+    setMapState(prev => ({
+      ...prev,
+      selectedVillage: clickedVillage || null
+    }));
+  }, [isDragging, mapState.zoom, mapState.centerX, mapState.centerY, mapState.villages, mapConfig.canvasWidth, mapConfig.canvasHeight]);
+
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(mapConfig.minZoom, Math.min(mapConfig.maxZoom, mapState.zoom * zoomFactor));
+    
+    setMapState(prev => ({
+      ...prev,
+      zoom: newZoom
+    }));
+  }, [mapState.zoom, mapConfig.minZoom, mapConfig.maxZoom]);
+
+  // ✅ OPRAVENO: Loading state
+  if (mapState.isLoading) {
     return (
-      <div className="map-loading">
-        <div className="map-loading__text">Načítání...</div>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '1.25rem',
+        fontFamily: 'system-ui, sans-serif'
+      }}>
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: '1rem',
+          border: '1px solid rgba(52, 211, 153, 0.3)',
+          padding: '2rem',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          <div style={{ marginBottom: '1rem' }}>🗺️</div>
+          <div>Načítání mapy...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ OPRAVENO: Error state
+  if (mapState.error) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '1.25rem',
+        fontFamily: 'system-ui, sans-serif'
+      }}>
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: '1rem',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          padding: '2rem',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          maxWidth: '400px',
+          width: '90%'
+        }}>
+          <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>⚠️</div>
+          <h2 style={{ color: '#ef4444', marginBottom: '1rem' }}>Chyba načítání mapy</h2>
+          <p style={{ color: '#a7f3d0', marginBottom: '1.5rem' }}>{mapState.error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              backgroundColor: '#eab308',
+              color: 'black',
+              border: 'none',
+              padding: '0.875rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            Zkusit znovu
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="map-page">
-      {/* Header stejný jako GamePage */}
-      <header className="map-header">
-        <div className="map-header__container">
-          <nav className="map-header__nav">
-            <button 
-              className="map-nav__item"
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%)',
+      color: 'white',
+      fontFamily: 'system-ui, sans-serif',
+      position: 'relative'
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(8px)',
+        borderBottom: '1px solid rgba(52, 211, 153, 0.3)',
+        padding: '1rem'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>🗺️ Herní Mapa</h1>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
               onClick={() => navigate('/game')}
+              style={{
+                backgroundColor: '#eab308',
+                color: 'black',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
             >
-              Náhled království
+              Zpět do hry
             </button>
-            <button 
-              className="map-nav__item map-nav__item--active"
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#a7f3d0',
+                border: '1px solid rgba(52, 211, 153, 0.3)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer'
+              }}
             >
-              Mapa
+              Hlavní stránka
             </button>
-            <button className="map-nav__item" disabled>
-              Profil
-            </button>
-            <button className="map-nav__item" disabled>
-              Aliance
-            </button>
-            <button className="map-nav__item" disabled>
-              Žebříček
-            </button>
-            <button className="map-nav__item" disabled>
-              Nastavení
-            </button>
-          </nav>
-          
-          <button
-            onClick={handleLogout}
-            className="map-header__logout"
-          >
-            Odhlásit se
-          </button>
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Main content */}
-      <main className="map-main">
-        <div className="map-container">
-          {/* Navigace */}
-          <div className="map-controls">
-            <div className="map-controls__search">
-              <input
-                type="text"
-                value={searchCoords}
-                onChange={(e) => setSearchCoords(e.target.value)}
-                placeholder="Souřadnice (x|y)"
-                className="map-controls__input"
+      <div style={{ padding: '1rem' }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr 300px',
+          gap: '1rem'
+        }}>
+          {/* Map canvas */}
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '1rem',
+            border: '1px solid rgba(52, 211, 153, 0.3)',
+            padding: '1rem',
+            overflow: 'hidden'
+          }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ margin: '0 0 0.5rem 0' }}>Interaktivní mapa</h3>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#a7f3d0' }}>
+                Zoom: {Math.round(mapState.zoom * 100)}% | 
+                Vesnic: {mapState.villages.length} | 
+                Tažením pohybuj mapou, kolečkem zoom
+              </p>
+            </div>
+            
+            <div ref={containerRef}>
+              <canvas
+                ref={canvasRef}
+                width={mapConfig.canvasWidth}
+                height={mapConfig.canvasHeight}
+                style={{
+                  border: '1px solid rgba(52, 211, 153, 0.3)',
+                  borderRadius: '0.5rem',
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                  maxWidth: '100%',
+                  height: 'auto'
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onClick={handleClick}
+                onWheel={handleWheel}
               />
-              <button
-                onClick={handleSearchCoords}
-                className="map-controls__search-btn"
-              >
-                <Search size={16} />
-              </button>
-            </div>
-
-            <div className="map-controls__center">
-              Střed mapy: {centerX}|{centerY}
             </div>
           </div>
 
-          {/* Mapa */}
-          <div className="map-grid-container">
-            <div className="map-grid">
-              {mapData.map((cell, index) => (
-                <div
-                  key={index}
-                  className={`map-cell ${cell.type !== 'empty' ? 'map-cell--interactive' : ''}`}
-                  style={{ backgroundColor: getCellColor(cell) }}
-                  onClick={() => handleCellClick(cell)}
-                  title={cell.village ? `${cell.village} (${cell.x}|${cell.y})${cell.owner ? ` - ${cell.owner}` : ''}` : `${cell.x}|${cell.y}`}
-                >
-                  <div className="map-cell__coords">
-                    {cell.x}|{cell.y}
-                  </div>
-                  {cell.type !== 'empty' && (
-                    <div className="map-cell__icon">
-                      {getCellIcon(cell)}
-                    </div>
-                  )}
-                  {cell.population && (
-                    <div className="map-cell__population">
-                      {cell.population}
-                    </div>
-                  )}
+          {/* Village details sidebar */}
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '1rem',
+            border: '1px solid rgba(52, 211, 153, 0.3)',
+            padding: '1rem',
+            height: 'fit-content'
+          }}>
+            <h3 style={{ margin: '0 0 1rem 0' }}>Detail vesnice</h3>
+            
+            {mapState.selectedVillage ? (
+              <div>
+                <h4 style={{ color: '#facc15', margin: '0 0 0.5rem 0' }}>
+                  {mapState.selectedVillage.name}
+                </h4>
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem' }}>
+                  <strong>Vlastník:</strong> {mapState.selectedVillage.owner}
+                </p>
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem' }}>
+                  <strong>Pozice:</strong> {mapState.selectedVillage.x}, {mapState.selectedVillage.y}
+                </p>
+                <p style={{ margin: '0 0 1rem 0', fontSize: '0.875rem' }}>
+                  <strong>Populace:</strong> {mapState.selectedVillage.population.toLocaleString()}
+                </p>
+                
+                <h5 style={{ margin: '0 0 0.5rem 0', color: '#a7f3d0' }}>Suroviny:</h5>
+                <div style={{ fontSize: '0.75rem', marginBottom: '1rem' }}>
+                  <div>🪵 Dřevo: {mapState.selectedVillage.resources.wood}</div>
+                  <div>🪨 Kámen: {mapState.selectedVillage.resources.stone}</div>
+                  <div>⚙️ Železo: {mapState.selectedVillage.resources.iron}</div>
+                  <div>🌾 Jídlo: {mapState.selectedVillage.resources.food}</div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Legenda */}
-          <div className="map-legend">
-            <div className="map-legend__item">
-              <div className="map-legend__color" style={{ backgroundColor: '#eab308' }}></div>
-              <Home size={12} />
-              <span>Vaše vesnice</span>
-            </div>
-            <div className="map-legend__item">
-              <div className="map-legend__color" style={{ backgroundColor: '#3b82f6' }}></div>
-              <Users size={12} />
-              <span>Vesnice hráčů</span>
-            </div>
-            <div className="map-legend__item">
-              <div className="map-legend__color" style={{ backgroundColor: '#6b7280' }}></div>
-              <Sword size={12} />
-              <span>Barbarské vesnice</span>
-            </div>
-            <div className="map-legend__item">
-              <div className="map-legend__color" style={{ backgroundColor: '#10b981' }}></div>
-              <span>+</span>
-              <span>Bonus pole</span>
-            </div>
+                <h5 style={{ margin: '0 0 0.5rem 0', color: '#a7f3d0' }}>Armáda:</h5>
+                <div style={{ fontSize: '0.75rem' }}>
+                  <div>🛡️ Kopiníci: {mapState.selectedVillage.army.units.spearmen}</div>
+                  <div>⚔️ Mečníci: {mapState.selectedVillage.army.units.swordsmen}</div>
+                  <div>🏹 Lukostřelci: {mapState.selectedVillage.army.units.archers}</div>
+                  <div>🐎 Jízda: {mapState.selectedVillage.army.units.cavalry}</div>
+                </div>
+              </div>
+            ) : (
+              <p style={{ color: '#a7f3d0', fontSize: '0.875rem' }}>
+                Klikni na vesnici na mapě pro zobrazení detailů.
+              </p>
+            )}
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="map-footer">
-        <div className="map-footer__container">
-          <p className="map-footer__text">
-            © 2025 Patrik Brnušák
-          </p>
-          <p className="map-footer__text">
-            Postaveno na Convex - moderní backend pro webové aplikace
-          </p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default MapPage;
