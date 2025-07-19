@@ -1,3 +1,73 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* App.css - základní styly pro aplikaci */
+.App {
+width: 100%;
+min-height: 100vh;
+}
+/* Reset a základní styly */
+
+{
+box-sizing: border-box;
+}
+
+body {
+margin: 0;
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+/* Základní utility třídy pro konzistenci napříč aplikací */
+.container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 1rem;
+}
+.text-center {
+text-align: center;
+}
+.flex {
+display: flex;
+}
+.flex-column {
+flex-direction: column;
+}
+.justify-center {
+justify-content: center;
+}
+.align-center {
+align-items: center;
+}
+.gap-1 {
+gap: 1rem;
+}
+.gap-2 {
+gap: 2rem;
+}
+/* Utility pro margin a padding */
+.m-0 { margin: 0; }
+.m-1 { margin: 1rem; }
+.m-2 { margin: 2rem; }
+.p-0 { padding: 0; }
+.p-1 { padding: 1rem; }
+.p-2 { padding: 2rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+/* Responsive utilities */
+@media (max-width: 768px) {
+.container {
+padding: 0 0.5rem;
+}
+}
+/* Scrollbar styling pro konzistentní vzhled */
+::-webkit-scrollbar {
+width: 8px;
+}
+::-webkit-scrollbar-track {
+background: rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+background: rgba(52, 211, 153, 0.3);
+border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+background: rgba(52, 211, 153, 0.5);
+}

@@ -1,5 +1,6 @@
-/* WindowContent.css - inline pro teď */
-const windowContentStyles = `
+/* src/components/game/WindowContent.css */
+
+/* Army Detail Window */
 .army-detail-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -77,6 +78,7 @@ const windowContentStyles = `
   line-height: 1.2;
 }
 
+/* Player Detail Window */
 .player-detail-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -137,6 +139,64 @@ const windowContentStyles = `
   font-weight: 600;
 }
 
+/* Village Overview Window */
+.village-overview {
+  padding: 0.5rem;
+}
+
+.village-overview h3 {
+  color: #34d399;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.village-overview p {
+  color: #a7f3d0;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Alliance Window */
+.alliance-overview {
+  padding: 0.5rem;
+}
+
+.alliance-overview h3 {
+  color: #34d399;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.alliance-overview p {
+  color: #a7f3d0;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Settings Window */
+.settings {
+  padding: 0.5rem;
+}
+
+.settings h3 {
+  color: #34d399;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.settings p {
+  color: #a7f3d0;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .army-stats {
     grid-template-columns: 1fr;
@@ -164,174 +224,61 @@ const windowContentStyles = `
     font-size: 1.1rem;
   }
 }
-`;
 
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.textContent = windowContentStyles;
-  document.head.appendChild(styleElement);
+/* General window content utilities */
+.window-section {
+  margin-bottom: 1.5rem;
 }
 
-// Content komponenty pro různé typy oken
-const ArmyDetailContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  const { province } = window.content || {};
-  
-  if (!province) {
-    return <div>Žádné data o provincii</div>;
-  }
+.window-section:last-child {
+  margin-bottom: 0;
+}
 
-  if (province.type === 'own') {
-    // Vlastní provincie - zobraz vojenské jednotky
-    const army = province.army || { OFF: 0, DEFF: 0, SIEGE: 0, SPEC: 0 };
-    
-    return (
-      <div className="army-detail">
-        <div className="army-detail-header">
-          <h3>{province.name}</h3>
-          <p className="coordinates">({province.gridX}/{province.gridY})</p>
-        </div>
-        
-        <div className="army-stats">
-          <div className="army-stat">
-            <div className="army-stat-icon">⚔️</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">OFF</div>
-              <div className="army-stat-value">{army.OFF}</div>
-              <div className="army-stat-desc">Útočné jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">🛡️</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">DEFF</div>
-              <div className="army-stat-value">{army.DEFF}</div>
-              <div className="army-stat-desc">Obranné jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">🏰</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">SIEGE</div>
-              <div className="army-stat-value">{army.SIEGE}</div>
-              <div className="army-stat-desc">Obléhací jednotky</div>
-            </div>
-          </div>
-          
-          <div className="army-stat">
-            <div className="army-stat-icon">✨</div>
-            <div className="army-stat-info">
-              <div className="army-stat-label">SPEC</div>
-              <div className="army-stat-value">{army.SPEC}</div>
-              <div className="army-stat-desc">Speciální jednotky</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  } else {
-    // Cizí provincie - zobraz informace o hráči
-    const player = province.player || { player: 'Neznámý', alliance: 'Žádná' };
-    
-    return (
-      <div className="player-detail">
-        <div className="player-detail-header">
-          <h3>{province.name}</h3>
-          <p className="coordinates">({province.gridX}/{province.gridY})</p>
-        </div>
-        
-        <div className="player-info">
-          <div className="player-info-item">
-            <div className="player-info-icon">👤</div>
-            <div className="player-info-content">
-              <div className="player-info-label">Vládce</div>
-              <div className="player-info-value">{player.player}</div>
-            </div>
-          </div>
-          
-          <div className="player-info-item">
-            <div className="player-info-icon">🤝</div>
-            <div className="player-info-content">
-              <div className="player-info-label">Aliance</div>
-              <div className="player-info-value">{player.alliance}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-};
+.window-section-title {
+  color: #34d399;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
 
-const VillageOverviewContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="village-overview">
-      <h3>Přehled vesnice</h3>
-      <p>Zde bude přehled vesnice s budovami, produkcí a jednotkami.</p>
-      {/* TODO: Implementovat detailní přehled vesnice */}
-    </div>
+.window-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(52, 211, 153, 0.3),
+    transparent
   );
-};
+  margin: 1rem 0;
+}
 
-const AllianceContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="alliance-overview">
-      <h3>Aliance</h3>
-      <p>Zde bude správa aliance, členové, eventy a komunikace.</p>
-      {/* TODO: Implementovat alianční systém */}
-    </div>
-  );
-};
+.window-button {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.8), rgba(251, 191, 36, 0.8));
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: black;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
 
-const SettingsContent: React.FC<{ window: GameWindow }> = ({ window }) => {
-  return (
-    <div className="settings">
-      <h3>Nastavení</h3>
-      <p>Zde budou herní nastavení, audio preference a ovládání.</p>
-      {/* TODO: Implementovat nastavení */}
-    </div>
-  );
-};
+.window-button:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(234, 179, 8, 0.9));
+  border-color: rgba(251, 191, 36, 0.7);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
 
-// Mapping typů oken na komponenty
-const windowComponents = {
-  'army-detail': ArmyDetailContent,
-  'village-overview': VillageOverviewContent,
-  'alliance': AllianceContent,
-  'settings': SettingsContent,
-} as const;
+.window-button--secondary {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.6), rgba(52, 211, 153, 0.4));
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  color: white;
+}
 
-const WindowManager: React.FC = () => {
-  const { windows, windowOrder } = useWindows();
-
-  const renderWindowContent = (window: GameWindow) => {
-    const ContentComponent = windowComponents[window.type];
-    
-    if (!ContentComponent) {
-      return <div>Neznámý typ okna: {window.type}</div>;
-    }
-    
-    return <ContentComponent window={window} />;
-  };
-
-  return (
-    <div className="window-manager">
-      {windows.map((window) => {
-        const zIndex = 1000 + windowOrder.indexOf(window.id);
-        
-        return (
-          <FloatingWindow
-            key={window.id}
-            window={window}
-            zIndex={zIndex}
-          >
-            {renderWindowContent(window)}
-          </FloatingWindow>
-        );
-      })}
-    </div>
-  );
-};
-
-export default WindowManager;
+.window-button--secondary:hover {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.8), rgba(52, 211, 153, 0.6));
+  border-color: rgba(52, 211, 153, 0.7);
+}
