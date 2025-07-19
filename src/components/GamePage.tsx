@@ -128,9 +128,12 @@ const GamePage: React.FC = () => {
             <button onClick={handleOpenResearch} className="game-header__button game-header__button--secondary">
               🔬 Výzkum
             </button>
-            <button onClick={handleOpenSettings} className="game-header__button game-header__button--secondary">
-              ⚙️ Nastavení
-            </button>
+            <button
+  className="game-button game-button--secondary"
+  onClick={() => navigate('/map')}
+>
+  Mapa světa
+</button>
             <button onClick={handleLogout} className="game-header__button game-header__button--logout">
               🚪 Odhlásit se
             </button>
