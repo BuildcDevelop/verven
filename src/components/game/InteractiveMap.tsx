@@ -125,17 +125,16 @@ ref={mapRef}
 >
 {/* Grid pattern */}
 <div
-style={{
-position: 'absolute',
-top: 0,
-left: 0,
-width: '200%',
-height: '200%',
-backgroundImage:             linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),             linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)          ,
-backgroundSize: '50px 50px',
-transform: translate(${dragPosition.x}px, ${dragPosition.y}px)
-}}
-/>
+  style={{
+    width: '200%',
+    height: '200%',
+    backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+    backgroundSize: '50px 50px',
+    transform: `translate(${dragPosition.x}px, ${dragPosition.y}px)`
+  }}
+>
+  {/* ... */}
+</div>
   {/* Provinces */}
   <div
     style={{

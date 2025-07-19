@@ -5,6 +5,7 @@ import './App.css';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import GamePage from './components/GamePage';
+
 function App(): JSX.Element {
 return (
 <Router>
