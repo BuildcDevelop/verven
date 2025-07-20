@@ -1,7 +1,7 @@
 // src/components/MapPage.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './MapPage.css';
+import '../MapPage.css';
 
 interface User {
   id: number;
