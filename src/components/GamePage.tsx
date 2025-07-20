@@ -1,5 +1,4 @@
-// src/components/GamePage.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GamePage.css';
 
@@ -19,19 +18,39 @@ export default function GamePage(): JSX.Element {
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Kontrola přihlášení při načtení
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+
+  const dragRef = useRef<HTMLDivElement | null>(null);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - startPos.x,
+      y: e.clientY - startPos.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
 
-  // ESC key pro zavření fullscreen mapy
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isMapFullscreen) {
         setIsMapFullscreen(false);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isMapFullscreen]);
@@ -43,13 +62,13 @@ export default function GamePage(): JSX.Element {
         navigate('/login');
         return;
       }
-      
+
       const userData: User = {
         id: 1,
         username: 'Hráč',
-        email: 'hrac@example.com'
+        email: 'hrac@example.com',
       };
-      
+
       setUser(userData);
       setLoading(false);
     } catch (error) {
@@ -63,22 +82,9 @@ export default function GamePage(): JSX.Element {
     navigate('/');
   };
 
-  const startGame = (): void => {
-    setGameState('playing');
-  };
-
-  const openFullscreenMap = (): void => {
-    setIsMapFullscreen(true);
-  };
-
-  const closeFullscreenMap = (): void => {
-    setIsMapFullscreen(false);
-  };
-
   const handleCellClick = (col: number, row: number): void => {
     const cellId = `${col}/${row}`;
     setSelectedCell(cellId);
-    console.log(`Vybráno pole: ${cellId}`);
   };
 
   const generateMapGrid = (): JSX.Element[] => {
@@ -110,82 +116,50 @@ export default function GamePage(): JSX.Element {
 
   return (
     <div className="game-page">
-      {/* Hlavní obsah */}
       <main className="game-main">
-        {/* Mapa na celou šířku */}
         <div className="game-map-area">
           <div className="game-map-container">
             <div className="game-map-header">
               <div className="game-map-header-left">
                 <h3 className="game-map-title">Herní mapa</h3>
-                {selectedCell && (
-                  <div className="selected-info">
-                    Vybráno: {selectedCell}
-                  </div>
-                )}
+                {selectedCell && <div className="selected-info">Vybráno: {selectedCell}</div>}
               </div>
               <div className="game-map-header-right">
-                <button
-                  onClick={() => navigate('/')}
-                  className="game-header__logout"
-                >
+                <button onClick={() => navigate('/')} className="game-header__logout">
                   Zpět na hlavní stránku
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="game-header__logout"
-                >
+                <button onClick={handleLogout} className="game-header__logout">
                   Odhlásit se
                 </button>
               </div>
             </div>
-            <div className="game-map-content">
-              <div className="game-map-grid">
-                {generateMapGrid()}
+
+            <div
+              className={`game-map-content ${isDragging ? 'dragging' : ''}`}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              <div
+                ref={dragRef}
+                className="map-drag-container"
+                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+              >
+                <div className="game-map-grid">{generateMapGrid()}</div>
               </div>
             </div>
+
             <div className="game-map-footer">
-              <button
-                onClick={() => alert('Nastavení - TODO')}
-                className="game-button game-button--secondary game-button--small"
-              >
-                Nastavení
-              </button>
-              <button
-                onClick={() => alert('Žebříček - TODO')}
-                className="game-button game-button--secondary game-button--small"
-              >
-                Žebříček
-              </button>
-              <button
-                onClick={openFullscreenMap}
-                className="game-button game-button--primary game-button--small"
-              >
+              <button className="game-button game-button--secondary game-button--small">Nastavení</button>
+              <button className="game-button game-button--secondary game-button--small">Žebříček</button>
+              <button onClick={() => setIsMapFullscreen(true)} className="game-button game-button--primary game-button--small">
                 Fullscreen mapa
               </button>
             </div>
           </div>
         </div>
       </main>
-
-      {/* Fullscreen mapa overlay */}
-      {isMapFullscreen && (
-        <div className="map-overlay">
-          <div className="map-container">
-            <div className="map-header">
-              <div className="map-title">Herní mapa</div>
-              <button className="close-btn" onClick={closeFullscreenMap}>
-                &times;
-              </button>
-            </div>
-            <div className="map-content">
-              <div className="map-grid" id="mapGrid">
-                {generateMapGrid()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
