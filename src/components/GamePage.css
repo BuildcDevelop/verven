@@ -20,12 +20,17 @@ html, body {
   position: relative;
 }
 
+.game-map-container {
+  min-height: 600px;
+}
+
 .game-map-content {
   flex: 1;
   position: relative;
   overflow: hidden;
   cursor: grab;
   user-select: none;
+  background: #0f172a;
 }
 
 .game-map-content.dragging {
@@ -62,22 +67,14 @@ html, body {
   font-size: 10px;
   color: #94a3b8;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
   font-weight: 500;
   user-select: none;
 }
 
-.grid-cell:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.grid-cell.has-object {
+  background-color: rgba(56, 189, 248, 0.2);
   color: #38bdf8;
   font-weight: bold;
-}
-
-.grid-cell--selected {
-  background-color: rgba(56, 189, 248, 0.2) !important;
-  border-color: #38bdf8 !important;
-  font-weight: bold;
-  color: #38bdf8;
 }
 
 .game-map-header {
@@ -108,29 +105,21 @@ html, body {
   color: #38bdf8;
 }
 
-.selected-info {
-  background: rgba(56, 189, 248, 0.1);
-  color: #7dd3fc;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
 .game-header__logout {
   font-weight: bold;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
 }
 
 .game-header__logout:hover {
   transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .game-map-footer {
@@ -171,25 +160,37 @@ html, body {
   min-width: 100px;
 }
 
-.game-button:hover {
-  transform: translateY(-2px);
-}
-
-.game-loading {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%);
+.info-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
 }
 
-.game-loading__text {
+.info-card {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 1rem;
+  color: #fff;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.info-card h2 {
+  margin-bottom: 1rem;
+}
+
+.info-card button {
+  background: #38bdf8;
+  border: none;
+  padding: 0.5rem 1rem;
   color: white;
-  font-size: 1.25rem;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
 }

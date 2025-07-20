@@ -20,7 +20,6 @@ export default function GamePage(): JSX.Element {
   const dragRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const animationFrame = useRef<number | null>(null);
-  const lastMouseDownPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const setTransform = (x: number, y: number) => {
     if (dragRef.current) {
@@ -29,9 +28,7 @@ export default function GamePage(): JSX.Element {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
     setIsDragging(true);
-    lastMouseDownPosition.current = { x: e.clientX, y: e.clientY };
     setStartPos({
       x: e.clientX - positionRef.current.x,
       y: e.clientY - positionRef.current.y,
@@ -39,7 +36,6 @@ export default function GamePage(): JSX.Element {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
     if (!isDragging || !containerRef.current || !dragRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
@@ -62,14 +58,7 @@ export default function GamePage(): JSX.Element {
     }
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    const dx = Math.abs(e.clientX - lastMouseDownPosition.current.x);
-    const dy = Math.abs(e.clientY - lastMouseDownPosition.current.y);
-
-    if (dx < 3 && dy < 3) {
-      // Click – nech grid fungovat normálně.
-    }
-
+  const handleMouseUp = () => {
     setIsDragging(false);
     if (animationFrame.current) {
       cancelAnimationFrame(animationFrame.current);
