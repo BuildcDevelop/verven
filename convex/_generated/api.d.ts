@@ -14,6 +14,9 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as addVillage from "../addVillage.js";
+import type * as client from "../client.js";
+import type * as convex_api from "../convex_api.js";
+import type * as convex_setup from "../convex_setup.js";
 import type * as getVillages from "../getVillages.js";
 import type * as tasks from "../tasks.js";
 
@@ -27,6 +30,9 @@ import type * as tasks from "../tasks.js";
  */
 declare const fullApi: ApiFromModules<{
   addVillage: typeof addVillage;
+  client: typeof client;
+  convex_api: typeof convex_api;
+  convex_setup: typeof convex_setup;
   getVillages: typeof getVillages;
   tasks: typeof tasks;
 }>;

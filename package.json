@@ -4,10 +4,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "convex": "npx convex dev",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "lint": "tsc --noEmit && echo 'TypeScript check passed'",
+    "db:setup": "node src/database/setup.js",
+    "db:reset": "node src/database/setup.js --reset"
   },
   "dependencies": {
     "convex": "^1.4.0",

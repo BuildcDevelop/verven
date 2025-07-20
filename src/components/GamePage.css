@@ -1,212 +1,573 @@
-/* Jednoduchý GamePage.css - jen základy */
+/* ============================================================ */
+/* AKTUALIZOVANÉ STYLY PRO HERNÍ STRÁNKU */
+/* ============================================================ */
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Hlavní container */
 .game-page {
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
 }
 
-/* Loading screen */
-.game-loading {
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  display: flex;
-  align-items: center;
+/* ============================================================ */
+/* LOADING A ERROR STATES */
+/* ============================================================ */
+
+.game-page.loading,
+.game-page.error {
   justify-content: center;
+  align-items: center;
+}
+
+.loading-spinner {
+  text-align: center;
   color: white;
 }
 
-.game-loading__text {
-  font-size: 24px;
-  font-weight: 600;
-  animation: pulse 2s infinite;
+.loading-spinner .spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
-}
-
-/* Okno mapy */
-.game-map-window {
-  width: 90vw;
-  height: 90vh;
-  max-width: 1200px;
-  max-height: 800px;
-  background: rgba(255, 255, 255, 0.95);
+.error-container {
+  background: white;
+  padding: 40px;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-container h2 {
+  color: #dc3545;
+  margin-bottom: 16px;
+}
+
+.retry-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #0056b3;
+}
+
+/* ============================================================ */
+/* SIDEBAR */
+/* ============================================================ */
+
+.game-sidebar {
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.player-info {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.player-info h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.stat-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+.alliance-name {
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.world-info {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007bff;
+}
+
+.world-info h3 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1.1em;
+}
+
+.world-info .stat-item {
+  color: #495057;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.map-controls {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #6f42c1;
+}
+
+.map-controls h3 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1.1em;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-button,
+.reset-button {
+  background: #6f42c1;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-button:hover,
+.reset-button:hover {
+  background: #5a2d91;
+  transform: scale(1.05);
+}
+
+.zoom-level {
+  background: rgba(111, 66, 193, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #6f42c1;
+  min-width: 50px;
+  text-align: center;
+}
+
+.legend {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #fd7e14;
+}
+
+.legend h3 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1.1em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+
+.legend-color.spawn-zone {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  border-color: #ffc107;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================ */
+/* HLAVNÍ HERNÍ OBLAST */
+/* ============================================================ */
+
+.game-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Header okna mapy */
-.game-map-header {
-  background: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-  padding: 16px 20px;
+.game-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  min-height: 60px;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.game-map-header h2 {
+.game-header h1 {
   margin: 0;
-  font-size: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.selected-info {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  padding: 8px 16px;
+  border-radius: 20px;
   font-weight: 600;
-  color: #2c3e50;
+  font-size: 0.9em;
+  border: 1px solid rgba(0, 123, 255, 0.3);
 }
 
-.game-map-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  color: #6c757d;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
+/* ============================================================ */
+/* MAPA */
+/* ============================================================ */
 
-.game-map-close:hover {
-  background: #e9ecef;
-  color: #495057;
-}
-
-/* Obsah mapy */
-.game-map-content {
+.map-container {
   flex: 1;
-  padding: 20px;
   overflow: auto;
-  background: #f8f9fa;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Grid systém */
-.simple-grid {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  height: 100%;
-  min-height: 600px;
-  background: #e9ecef;
-  padding: 10px;
-  border-radius: 8px;
+.game-map {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-out;
 }
 
-.grid-cell {
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+.map-row {
+  display: flex;
+}
+
+.map-tile {
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  position: relative;
-  user-select: none;
+  border: 1px solid #ddd;
 }
 
-.grid-cell:hover {
-  background: #e3f2fd;
-  border-color: #2196f3;
-  transform: scale(1.05);
-  z-index: 10;
-}
-
-.grid-cell.selected {
-  background: #2196f3;
-  border-color: #1976d2;
-  color: white;
+.map-tile:hover {
   transform: scale(1.1);
-  z-index: 20;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
 }
 
-.grid-coords {
-  font-size: 10px;
-  font-weight: 600;
+.map-tile.spawn-zone {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.map-tile.owned {
+  border-width: 2px;
+  border-style: solid;
+}
+
+.terrain-icon {
+  font-size: 8px;
+  pointer-events: none;
   opacity: 0.7;
 }
 
-.grid-cell:hover .grid-coords,
-.grid-cell.selected .grid-coords {
-  opacity: 1;
-  font-size: 11px;
+.spawn-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 6px;
+  background: rgba(255, 215, 0, 0.9);
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: sparkle 1.5s ease-in-out infinite;
 }
 
-/* Responzivní design */
+/* ============================================================ */
+/* ANIMACE */
+/* ============================================================ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================ */
+/* RESPONZIVNÍ DESIGN */
+/* ============================================================ */
+
+@media (max-width: 1200px) {
+  .game-sidebar {
+    width: 280px;
+  }
+  
+  .game-header h1 {
+    font-size: 1.5em;
+  }
+}
+
+@media (max-width: 992px) {
+  .game-page {
+    flex-direction: column;
+  }
+  
+  .game-sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    padding: 16px;
+  }
+  
+  .player-info {
+    padding: 16px;
+  }
+  
+  .world-info,
+  .map-controls,
+  .legend {
+    display: none; /* Skryjeme méně důležité sekce na mobilu */
+  }
+  
+  .game-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .map-container {
+    padding: 16px;
+  }
+  
+  .map-tile {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .terrain-icon {
+    font-size: 6px;
+  }
+}
+
 @media (max-width: 768px) {
-  .game-map-window {
-    width: 95vw;
-    height: 95vh;
+  .game-sidebar {
+    max-height: 150px;
+    overflow-x: auto;
   }
   
-  .game-map-header {
-    padding: 12px 16px;
+  .stat-item {
+    font-size: 0.9em;
   }
   
-  .game-map-header h2 {
-    font-size: 18px;
+  .map-tile {
+    width: 12px;
+    height: 12px;
   }
   
-  .game-map-content {
-    padding: 15px;
+  .terrain-icon {
+    font-size: 5px;
   }
   
-  .simple-grid {
-    min-height: 400px;
-    gap: 1px;
-  }
-  
-  .grid-cell {
-    min-height: 25px;
-  }
-  
-  .grid-coords {
-    font-size: 9px;
+  .spawn-indicator {
+    font-size: 4px;
+    width: 6px;
+    height: 6px;
   }
 }
 
 @media (max-width: 480px) {
-  .game-map-window {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
+  .game-header h1 {
+    font-size: 1.2em;
   }
   
-  .game-map-content {
-    padding: 10px;
+  .selected-info {
+    font-size: 0.8em;
+    padding: 6px 12px;
   }
   
-  .simple-grid {
-    min-height: 300px;
+  .map-tile {
+    width: 10px;
+    height: 10px;
   }
   
-  .grid-cell {
-    min-height: 20px;
+  .terrain-icon {
+    display: none; /* Skryjeme ikony na velmi malých displejích */
+  }
+}
+
+/* ============================================================ */
+/* PŘIZPŮSOBENÍ PRO TMAVÝ REŽIM */
+/* ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .game-sidebar {
+    background: rgba(33, 37, 41, 0.95);
+    color: #f8f9fa;
   }
   
-  .grid-coords {
-    font-size: 8px;
+  .world-info,
+  .map-controls,
+  .legend {
+    background: rgba(52, 58, 64, 0.8);
+    color: #f8f9fa;
+  }
+  
+  .world-info h3,
+  .map-controls h3,
+  .legend h3 {
+    color: #f8f9fa;
+  }
+  
+  .world-info .stat-item {
+    color: #dee2e6;
+  }
+  
+  .legend-item {
+    color: #dee2e6;
+  }
+  
+  .game-header {
+    background: rgba(33, 37, 41, 0.95);
+    color: #f8f9fa;
+  }
+  
+  .game-map {
+    background: rgba(52, 58, 64, 0.9);
+  }
+}
+
+/* ============================================================ */
+/* UTILITY CLASSES */
+/* ============================================================ */
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
   }
 }
