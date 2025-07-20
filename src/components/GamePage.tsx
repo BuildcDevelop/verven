@@ -1,7 +1,7 @@
 // src/components/GamePage.tsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import './GamePage.css'; // Komentuj nebo smaž pokud používáš styles.css
+import './GamePage.css';
 
 interface User {
   id: number;
@@ -9,21 +9,14 @@ interface User {
   email: string;
 }
 
-type GameState = 'menu' | 'playing' | 'paused' | 'finished';
-
-interface GameData {
-  score: number;
-  level: number;
-  gameTime: number;
-}
+type GameState = 'menu' | 'playing';
 
 export default function GamePage(): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [gameState, setGameState] = useState<GameState>('menu');
-  const [score, setScore] = useState<number>(0);
-  const [level, setLevel] = useState<number>(1);
-  const [gameTime, setGameTime] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isMapFullscreen, setIsMapFullscreen] = useState<boolean>(false);
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Kontrola přihlášení při načtení
@@ -31,29 +24,26 @@ export default function GamePage(): JSX.Element {
     checkAuth();
   }, []);
 
-  // Timer pro hru
+  // ESC key pro zavření fullscreen mapy
   useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    if (gameState === 'playing') {
-      interval = setInterval(() => {
-        setGameTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMapFullscreen) {
+        setIsMapFullscreen(false);
+      }
     };
-  }, [gameState]);
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMapFullscreen]);
 
   const checkAuth = async (): Promise<void> => {
     try {
-      // Zde byste kontrolovali autentifikaci (localStorage, Convex auth)
       const token = localStorage.getItem('authToken');
       if (!token) {
         navigate('/login');
         return;
       }
       
-      // Simulace načtení uživatelských dat (později nahradit Convex query)
       const userData: User = {
         id: 1,
         username: 'Hráč',
@@ -75,46 +65,39 @@ export default function GamePage(): JSX.Element {
 
   const startGame = (): void => {
     setGameState('playing');
-    setScore(0);
-    setLevel(1);
-    setGameTime(0);
   };
 
-  const pauseGame = (): void => {
-    setGameState('paused');
+  const openFullscreenMap = (): void => {
+    setIsMapFullscreen(true);
   };
 
-  const resumeGame = (): void => {
-    setGameState('playing');
+  const closeFullscreenMap = (): void => {
+    setIsMapFullscreen(false);
   };
 
-  const endGame = (): void => {
-    setGameState('finished');
-    // Zde byste uložili skóre do Convex databáze
-    saveScore();
+  const handleCellClick = (col: number, row: number): void => {
+    const cellId = `${col}/${row}`;
+    setSelectedCell(cellId);
+    console.log(`Vybráno pole: ${cellId}`);
   };
 
-  const resetGame = (): void => {
-    setGameState('menu');
-    setScore(0);
-    setLevel(1);
-    setGameTime(0);
-  };
-
-  const saveScore = async (): Promise<void> => {
-    try {
-      // TODO: Implementovat uložení skóre přes Convex
-      const gameData: GameData = { score, level, gameTime };
-      console.log('Ukládám skóre:', gameData);
-    } catch (error) {
-      console.error('Chyba při ukládání skóre:', error);
+  const generateMapGrid = (): JSX.Element[] => {
+    const grid = [];
+    for (let row = 1; row <= 20; row++) {
+      for (let col = 1; col <= 20; col++) {
+        const cellId = `${col}/${row}`;
+        grid.push(
+          <div
+            key={cellId}
+            className={`grid-cell ${selectedCell === cellId ? 'grid-cell--selected' : ''}`}
+            onClick={() => handleCellClick(col, row)}
+          >
+            {cellId}
+          </div>
+        );
+      }
     }
-  };
-
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return grid;
   };
 
   if (loading) {
@@ -127,197 +110,82 @@ export default function GamePage(): JSX.Element {
 
   return (
     <div className="game-page">
-      {/* Header */}
-      <header className="game-header">
-        <div className="game-header__container">
-          <div className="game-header__info">
-            <h1 className="game-header__title">Verven Game</h1>
-            <p className="game-header__welcome">Vítej, {user?.username}!</p>
-          </div>
-          
-          <div className="game-header__stats-section">
-            <div className="game-header__stats">
-              <div className="game-header__stat">Skóre: {score}</div>
-              <div className="game-header__stat">Level: {level}</div>
-              {gameState === 'playing' && (
-                <div className="game-header__stat">Čas: {formatTime(gameTime)}</div>
-              )}
-            </div>
-            
-            <button
-              onClick={handleLogout}
-              className="game-header__logout"
-            >
-              Odhlásit se
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* Hlavní obsah */}
       <main className="game-main">
-        {/* Menu stav */}
-        {gameState === 'menu' && (
-          <div className="game-menu">
-            <div className="game-card game-menu__card">
-              <h2 className="game-menu__title">Hlavní menu</h2>
-              
-              <div className="game-menu__buttons">
-                <button
-                  onClick={startGame}
-                  className="game-button game-button--primary"
-                >
-                  Začít hru
-                </button>
-                
-                <button
-                  className="game-button game-button--secondary"
-                  onClick={() => alert('Nastavení - TODO')}
-                >
-                  Nastavení
-                </button>
-                
-                <button
-                  className="game-button game-button--secondary"
-                  onClick={() => alert('Žebříček - TODO')}
-                >
-                  Žebříček
-                </button>
-
+        {/* Mapa na celou šířku */}
+        <div className="game-map-area">
+          <div className="game-map-container">
+            <div className="game-map-header">
+              <div className="game-map-header-left">
+                <h3 className="game-map-title">Herní mapa</h3>
+                {selectedCell && (
+                  <div className="selected-info">
+                    Vybráno: {selectedCell}
+                  </div>
+                )}
+              </div>
+              <div className="game-map-header-right">
                 <button
                   onClick={() => navigate('/')}
-                  className="game-button game-button--secondary"
+                  className="game-header__logout"
                 >
                   Zpět na hlavní stránku
                 </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hrací stav */}
-        {gameState === 'playing' && (
-          <div className="game-playing">
-            <div className="game-card game-playing__card">
-              <h2 className="game-playing__title">Hra běží!</h2>
-              
-              {/* Herní oblast - zde bude vaše hra */}
-              <div className="game-area">
-                <div className="game-area__content">
-                  <div className="game-area__icon">🎮</div>
-                  <p className="game-area__text">Zde bude herní obsah</p>
-                  <p className="game-area__subtext">
-                    Toto je placeholder pro vaši hru
-                  </p>
-                  <div className="game-area__stats">
-                    <div className="game-area__stat">Čas: {formatTime(gameTime)}</div>
-                    <div className="game-area__stat">Skóre: {score}</div>
-                    <div className="game-area__stat">Level: {level}</div>
-                  </div>
-                </div>
-                
-                {/* Simulace herního obsahu */}
-                <div className="game-area__timer">
-                  <div>Hra běží {gameTime}s</div>
-                </div>
-              </div>
-              
-              <div className="game-playing__controls">
                 <button
-                  onClick={pauseGame}
-                  className="game-button game-button--primary game-button--small"
+                  onClick={handleLogout}
+                  className="game-header__logout"
                 >
-                  Pozastavit
-                </button>
-                
-                <button
-                  onClick={endGame}
-                  className="game-button game-button--secondary game-button--small"
-                >
-                  Ukončit hru
+                  Odhlásit se
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Pozastavený stav */}
-        {gameState === 'paused' && (
-          <div className="game-paused">
-            <div className="game-card game-paused__card">
-              <h2 className="game-paused__title">Hra pozastavena</h2>
-              
-              <div className="game-paused__stats">
-                <p className="game-paused__stat">Čas: {formatTime(gameTime)}</p>
-                <p className="game-paused__stat">Skóre: {score}</p>
-                <p className="game-paused__stat">Level: {level}</p>
-              </div>
-              
-              <div className="game-paused__buttons">
-                <button
-                  onClick={resumeGame}
-                  className="game-button game-button--primary"
-                >
-                  Pokračovat
-                </button>
-                
-                <button
-                  onClick={resetGame}
-                  className="game-button game-button--secondary"
-                >
-                  Zpět do menu
-                </button>
+            <div className="game-map-content">
+              <div className="game-map-grid">
+                {generateMapGrid()}
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Dokončený stav */}
-        {gameState === 'finished' && (
-          <div className="game-finished">
-            <div className="game-card game-finished__card">
-              <h2 className="game-finished__title">Hra skončena!</h2>
-              
-              <div className="game-finished__stats">
-                <p className="game-finished__stat">
-                  Finální skóre: <span className="game-finished__stat-value">{score}</span>
-                </p>
-                <p className="game-finished__stat">
-                  Dosažený level: <span className="game-finished__stat-value">{level}</span>
-                </p>
-                <p className="game-finished__stat">
-                  Celkový čas: <span className="game-finished__stat-value">{formatTime(gameTime)}</span>
-                </p>
-              </div>
-              
-              <div className="game-finished__buttons">
-                <button
-                  onClick={startGame}
-                  className="game-button game-button--primary"
-                >
-                  Hrát znovu
-                </button>
-                
-                <button
-                  onClick={resetGame}
-                  className="game-button game-button--secondary"
-                >
-                  Zpět do menu
-                </button>
-              </div>
+            <div className="game-map-footer">
+              <button
+                onClick={() => alert('Nastavení - TODO')}
+                className="game-button game-button--secondary game-button--small"
+              >
+                Nastavení
+              </button>
+              <button
+                onClick={() => alert('Žebříček - TODO')}
+                className="game-button game-button--secondary game-button--small"
+              >
+                Žebříček
+              </button>
+              <button
+                onClick={openFullscreenMap}
+                className="game-button game-button--primary game-button--small"
+              >
+                Fullscreen mapa
+              </button>
             </div>
           </div>
-        )}
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="game-footer">
-        <div className="game-footer__container">
-          <p className="game-footer__text">
-            &copy; 2025 Verven Game. Všechna práva vyhrazena.
-          </p>
+      {/* Fullscreen mapa overlay */}
+      {isMapFullscreen && (
+        <div className="map-overlay">
+          <div className="map-container">
+            <div className="map-header">
+              <div className="map-title">Herní mapa</div>
+              <button className="close-btn" onClick={closeFullscreenMap}>
+                &times;
+              </button>
+            </div>
+            <div className="map-content">
+              <div className="map-grid" id="mapGrid">
+                {generateMapGrid()}
+              </div>
+            </div>
+          </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }

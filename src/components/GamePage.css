@@ -1,403 +1,571 @@
+/* src/components/GamePage.css */
+
 /* ============================================================ */
-/* AKTUALIZOVANÉ STYLY PRO HERNÍ STRÁNKU */
+/* ZÁKLADNÍ STYLY STRÁNKY */
 /* ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 .game-page {
-  display: flex;
-  height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow: hidden;
-}
-
-/* ============================================================ */
-/* LOADING A ERROR STATES */
-/* ============================================================ */
-
-.game-page.loading,
-.game-page.error {
-  justify-content: center;
-  align-items: center;
-}
-
-.loading-spinner {
-  text-align: center;
-  color: white;
-}
-
-.loading-spinner .spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  border-top: 6px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-
-.error-container {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  max-width: 400px;
-}
-
-.error-container h2 {
-  color: #dc3545;
-  margin-bottom: 16px;
-}
-
-.retry-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s;
-}
-
-.retry-button:hover {
-  background: #0056b3;
-}
-
-/* ============================================================ */
-/* SIDEBAR */
-/* ============================================================ */
-
-.game-sidebar {
-  width: 320px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 20px;
-  overflow-y: auto;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.player-info {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
-
-.player-info h2 {
-  margin: 0 0 16px 0;
-  font-size: 1.4em;
-  font-weight: 600;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.stat-label {
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.stat-value {
-  font-weight: 700;
-  font-size: 1.1em;
-}
-
-.alliance-name {
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.world-info {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border-left: 4px solid #007bff;
-}
-
-.world-info h3 {
-  margin: 0 0 12px 0;
-  color: #495057;
-  font-size: 1.1em;
-}
-
-.world-info .stat-item {
-  color: #495057;
-  border-bottom-color: rgba(0, 0, 0, 0.1);
-}
-
-.map-controls {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border-left: 4px solid #6f42c1;
-}
-
-.map-controls h3 {
-  margin: 0 0 12px 0;
-  color: #495057;
-  font-size: 1.1em;
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.zoom-button,
-.reset-button {
-  background: #6f42c1;
-  color: white;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.zoom-button:hover,
-.reset-button:hover {
-  background: #5a2d91;
-  transform: scale(1.05);
-}
-
-.zoom-level {
-  background: rgba(111, 66, 193, 0.1);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  color: #6f42c1;
-  min-width: 50px;
-  text-align: center;
-}
-
-.legend {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border-left: 4px solid #fd7e14;
-}
-
-.legend h3 {
-  margin: 0 0 12px 0;
-  color: #495057;
-  font-size: 1.1em;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  font-size: 0.9em;
-  color: #6c757d;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  border: 1px solid #ddd;
-}
-
-.legend-color.spawn-zone {
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
-  border-color: #ffc107;
-}
-
-.actions {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  position: relative;
 }
 
-.action-button {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+.game-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.game-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 30h-12v12h12V30zm-18 0h-12v12h12V30zm18-18h-12v12h12V12zm-18 0h-12v12h12V12z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.1;
+  z-index: 2;
+}
+
+.game-loading {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 25%, #0f766e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+.game-loading__text {
   color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-}
-
-.action-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
-}
-
-.action-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  font-size: 1.25rem;
+  animation: pulse 2s infinite;
 }
 
 /* ============================================================ */
-/* HLAVNÍ HERNÍ OBLAST */
+/* HLAVNÍ OBSAH */
 /* ============================================================ */
 
 .game-main {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  padding: 1rem;
+  position: relative;
+  z-index: 10;
   overflow: hidden;
+  min-height: 100vh;
 }
 
-.game-header {
-  background: rgba(255, 255, 255, 0.95);
+.game-layout {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ============================================================ */
+/* MAPA OBLAST (CELÁ ŠÍŘKA) */
+/* ============================================================ */
+
+.game-map-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.game-map-container {
+  background: rgba(56, 56, 56, 0.95);
   backdrop-filter: blur(10px);
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 600px;
+}
+
+.game-map-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 1rem 1rem 0 0;
 }
 
-.game-header h1 {
+.game-map-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-map-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.game-map-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #21bd2e;
   margin: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 1.8em;
-  font-weight: 700;
 }
 
 .selected-info {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
-  padding: 8px 16px;
-  border-radius: 20px;
+  background: rgba(5, 150, 105, 0.1);
+  color: #a8ffa8;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   font-weight: 600;
-  font-size: 0.9em;
-  border: 1px solid rgba(0, 123, 255, 0.3);
+  font-size: 0.875rem;
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.game-header__logout {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+}
+
+.game-header__logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.game-map-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(143, 28, 28, 0.1);
+  background: rgba(161, 141, 141, 0.02);
+  border-radius: 0 0 1rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.game-map-content {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+}
+
+.game-map-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  gap: 1px;
+  background: #e5e7eb;
+  padding: 1px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 750px;
+  aspect-ratio: 1;
+  border: 1px solid #d1d5db;
+}
+
+.game-map-grid .grid-cell {
+  background-color: #fde5b1;
+  border: 1px solid #525252;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #4d4e50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 30px;
+  max-height: 30px;
+  position: relative;
+  font-weight: 500;
+}
+
+.game-map-grid .grid-cell:hover {
+  background-color: #f3f4f6;
+  transform: scale(1.05);
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-color: #059669;
+  color: #059669;
+  font-weight: bold;
+}
+
+.game-map-grid .grid-cell--selected {
+  background-color: #e3f2fd !important;
+  border-color: #059669 !important;
+  border-width: 2px !important;
+  font-weight: bold;
+  color: #059669;
 }
 
 /* ============================================================ */
-/* MAPA */
+/* SPOLEČNÉ STYLY PRO KARTY */
 /* ============================================================ */
+
+.game-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  max-width: 600px;
+  width: 100%;
+}
+
+/* ============================================================ */
+/* TLAČÍTKA */
+/* ============================================================ */
+
+.game-button {
+  font-weight: bold;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  min-width: 140px;
+}
+
+.game-button--primary {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+}
+
+.game-button--secondary {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+}
+
+.game-button--small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  min-width: 100px;
+}
+
+.game-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(200, 27, 206, 0.3);
+}
+
+.game-button:active {
+  transform: translateY(0);
+}
+
+/* ============================================================ */
+/* MENU STAV */
+/* ============================================================ */
+
+.game-menu {
+  text-align: center;
+}
+
+.game-menu__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-menu__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* ============================================================ */
+/* HRACÍ STAV */
+/* ============================================================ */
+
+.game-playing {
+  text-align: center;
+  width: 100%;
+}
+
+.game-playing__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #059669;
+}
+
+.game-playing__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* ============================================================ */
+/* POZASTAVENÝ STAV */
+/* ============================================================ */
+
+.game-paused {
+  text-align: center;
+}
+
+.game-paused__title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #dc2626;
+}
+
+.game-paused__stats {
+  margin-bottom: 2rem;
+}
+
+.game-paused__stat {
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.game-paused__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================ */
+/* UKONČENÝ STAV */
+/* ============================================================ */
+
+.game-finished {
+  text-align: center;
+}
+
+.game-finished__title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #7c3aed;
+}
+
+.game-finished__stats {
+  margin-bottom: 2rem;
+}
+
+.game-finished__stat {
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.game-finished__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================ */
+/* FULLSCREEN MAPA */
+/* ============================================================ */
+
+.map-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
 
 .map-container {
-  flex: 1;
-  overflow: auto;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.game-map {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease-out;
-}
-
-.map-row {
-  display: flex;
-}
-
-.map-tile {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  width: 95vw;
+  height: 95vh;
+  max-width: 1400px;
+  max-height: 900px;
+  min-width: 800px;
+  min-height: 600px;
   position: relative;
   display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: slideInScale 0.3s ease-out;
+}
+
+.map-header {
+  background-color: #e8e8e8;
+  padding: 12px 16px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.map-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #ddd;
+}
+
+.map-content {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+  display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 1;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.map-grid .grid-cell {
+  background-color: #fff;
   border: 1px solid #ddd;
-}
-
-.map-tile:hover {
-  transform: scale(1.1);
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
-}
-
-.map-tile.spawn-zone {
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-.map-tile.owned {
-  border-width: 2px;
-  border-style: solid;
-}
-
-.terrain-icon {
-  font-size: 8px;
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-.spawn-indicator {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  font-size: 6px;
-  background: rgba(255, 215, 0, 0.9);
-  border-radius: 50%;
-  width: 8px;
-  height: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: sparkle 1.5s ease-in-out infinite;
+  font-size: 10px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 30px;
+  position: relative;
+}
+
+.map-grid .grid-cell:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.map-grid .grid-cell--selected {
+  background-color: #e3f2fd !important;
+  border-color: #2196f3 !important;
+  border-width: 2px !important;
+  font-weight: bold;
+  color: #1976d2;
+}
+
+/* ============================================================ */
+/* SCROLLBARY */
+/* ============================================================ */
+
+.map-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.map-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.map-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.map-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* ============================================================ */
 /* ANIMACE */
 /* ============================================================ */
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+  }
+  to { 
+    opacity: 1; 
+  }
 }
 
-@keyframes glow {
+@keyframes slideInScale {
   from {
-    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
   }
   to {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-@keyframes sparkle {
+@keyframes pulse {
   0%, 100% {
-    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.2);
-    opacity: 0.7;
+    opacity: 0.5;
   }
 }
 
@@ -407,167 +575,209 @@
 
 @media (max-width: 1200px) {
   .game-sidebar {
-    width: 280px;
+    width: 300px;
   }
   
-  .game-header h1 {
-    font-size: 1.5em;
+  .game-map-grid {
+    max-width: 500px;
+    grid-template-columns: repeat(20, 1fr) !important;
+    grid-template-rows: repeat(20, 1fr) !important;
+  }
+  
+  .game-map-grid .grid-cell {
+    font-size: 7px;
+    min-height: 18px;
+    max-height: 25px;
+  }
+  
+  .game-card {
+    padding: 1.5rem;
+  }
+  
+  .map-container {
+    width: 98vw;
+    height: 98vh;
+    min-width: 600px;
+    min-height: 500px;
   }
 }
 
-@media (max-width: 992px) {
-  .game-page {
+@media (max-width: 900px) {
+  .game-layout {
     flex-direction: column;
   }
   
   .game-sidebar {
     width: 100%;
-    height: auto;
-    max-height: 200px;
-    padding: 16px;
+    order: 2;
   }
   
-  .player-info {
-    padding: 16px;
+  .game-map-area {
+    order: 1;
+    height: 400px;
+    flex-shrink: 0;
   }
   
-  .world-info,
-  .map-controls,
-  .legend {
-    display: none; /* Skryjeme méně důležité sekce na mobilu */
+  .game-map-container {
+    min-height: 400px;
   }
   
-  .game-header {
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
+  .game-map-grid {
+    max-width: 400px;
+    grid-template-columns: repeat(20, 1fr) !important;
+    grid-template-rows: repeat(20, 1fr) !important;
   }
   
-  .map-container {
-    padding: 16px;
-  }
-  
-  .map-tile {
-    width: 15px;
-    height: 15px;
-  }
-  
-  .terrain-icon {
+  .game-map-grid .grid-cell {
     font-size: 6px;
+    min-height: 15px;
+    max-height: 20px;
   }
 }
 
-@media (max-width: 768px) {
-  .game-sidebar {
-    max-height: 150px;
-    overflow-x: auto;
+@media (max-width: 800px) {
+  .game-main {
+    padding: 0.5rem;
   }
   
-  .stat-item {
-    font-size: 0.9em;
+  .game-card {
+    padding: 1rem;
   }
   
-  .map-tile {
-    width: 12px;
-    height: 12px;
+  .game-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    min-width: 120px;
   }
   
-  .terrain-icon {
-    font-size: 5px;
+  .game-map-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
   }
   
-  .spawn-indicator {
-    font-size: 4px;
-    width: 6px;
-    height: 6px;
+  .game-map-header-left {
+    justify-content: center;
+  }
+  
+  .game-map-header-right {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .game-map-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .map-container {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    min-width: auto;
+    min-height: auto;
+  }
+  
+  .map-header {
+    border-radius: 0;
+    padding: 10px 12px;
+  }
+  
+  .map-grid {
+    gap: 1px;
   }
 }
 
 @media (max-width: 480px) {
-  .game-header h1 {
-    font-size: 1.2em;
+  .game-header__title {
+    font-size: 1.5rem;
   }
   
-  .selected-info {
-    font-size: 0.8em;
-    padding: 6px 12px;
+  .game-menu__title {
+    font-size: 2rem;
   }
   
-  .map-tile {
-    width: 10px;
-    height: 10px;
+  .game-playing__title {
+    font-size: 1.5rem;
   }
   
-  .terrain-icon {
-    display: none; /* Skryjeme ikony na velmi malých displejích */
+  .game-map-area {
+    height: 300px;
+  }
+  
+  .game-map-container {
+    min-height: 300px;
+  }
+  
+  .game-map-grid {
+    max-width: 280px;
+    grid-template-columns: repeat(20, 1fr) !important;
+    grid-template-rows: repeat(20, 1fr) !important;
+  }
+  
+  .game-map-grid .grid-cell {
+    font-size: 5px;
+    min-height: 12px;
+    max-height: 15px;
+  }
+  
+  .game-area__stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .game-sidebar .game-card {
+    padding: 0.75rem;
+  }
+  
+  .game-menu__buttons {
+    gap: 0.75rem;
   }
 }
 
 /* ============================================================ */
-/* PŘIZPŮSOBENÍ PRO TMAVÝ REŽIM */
+/* TMAVÝ REŽIM */
 /* ============================================================ */
 
 @media (prefers-color-scheme: dark) {
-  .game-sidebar {
-    background: rgba(33, 37, 41, 0.95);
-    color: #f8f9fa;
+  .map-container {
+    background-color: #1f2937;
+    color: #f9fafb;
   }
   
-  .world-info,
-  .map-controls,
-  .legend {
-    background: rgba(52, 58, 64, 0.8);
-    color: #f8f9fa;
+  .map-header {
+    background-color: #374151;
+    color: #f9fafb;
+    border-bottom-color: #4b5563;
   }
   
-  .world-info h3,
-  .map-controls h3,
-  .legend h3 {
-    color: #f8f9fa;
+  .map-title {
+    color: #f9fafb;
   }
   
-  .world-info .stat-item {
-    color: #dee2e6;
+  .close-btn {
+    color: #d1d5db;
   }
   
-  .legend-item {
-    color: #dee2e6;
+  .close-btn:hover {
+    background-color: #4b5563;
   }
   
-  .game-header {
-    background: rgba(33, 37, 41, 0.95);
-    color: #f8f9fa;
+  .grid-cell {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
   }
   
-  .game-map {
-    background: rgba(52, 58, 64, 0.9);
+  .grid-cell:hover {
+    background-color: #4b5563;
   }
-}
-
-/* ============================================================ */
-/* UTILITY CLASSES */
-/* ============================================================ */
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
+  
+  .grid-cell--selected {
+    background-color: #1e3a8a !important;
+    border-color: #3b82f6 !important;
+    color: #93c5fd !important;
   }
 }
