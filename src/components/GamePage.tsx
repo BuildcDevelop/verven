@@ -8,52 +8,74 @@ interface User {
   email: string;
 }
 
-type GameState = 'menu' | 'playing';
-
 export default function GamePage(): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
-  const [gameState, setGameState] = useState<GameState>('menu');
   const [loading, setLoading] = useState<boolean>(true);
-  const [isMapFullscreen, setIsMapFullscreen] = useState<boolean>(false);
-  const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const navigate = useNavigate();
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-
+  const positionRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const animationFrame = useRef<number | null>(null);
+  const lastMouseDownPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
+  const setTransform = (x: number, y: number) => {
+    if (dragRef.current) {
+      dragRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setPosition({
-      x: e.clientX - startPos.x,
-      y: e.clientY - startPos.y,
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+    lastMouseDownPosition.current = { x: e.clientX, y: e.clientY };
+    setStartPos({
+      x: e.clientX - positionRef.current.x,
+      y: e.clientY - positionRef.current.y,
     });
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!isDragging || !containerRef.current || !dragRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const mapRect = dragRef.current.getBoundingClientRect();
+
+    const newX = e.clientX - startPos.x;
+    const newY = e.clientY - startPos.y;
+
+    const minX = containerRect.width - mapRect.width;
+    const minY = containerRect.height - mapRect.height;
+
+    positionRef.current.x = Math.min(0, Math.max(minX, newX));
+    positionRef.current.y = Math.min(0, Math.max(minY, newY));
+
+    if (!animationFrame.current) {
+      animationFrame.current = requestAnimationFrame(() => {
+        setTransform(positionRef.current.x, positionRef.current.y);
+        animationFrame.current = null;
+      });
+    }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    const dx = Math.abs(e.clientX - lastMouseDownPosition.current.x);
+    const dy = Math.abs(e.clientY - lastMouseDownPosition.current.y);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMapFullscreen) {
-        setIsMapFullscreen(false);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isMapFullscreen]);
+    if (dx < 3 && dy < 3) {
+      // Click – nech grid fungovat normálně.
+    }
+
+    setIsDragging(false);
+    if (animationFrame.current) {
+      cancelAnimationFrame(animationFrame.current);
+      animationFrame.current = null;
+    }
+  };
 
   const checkAuth = async (): Promise<void> => {
     try {
@@ -68,7 +90,6 @@ export default function GamePage(): JSX.Element {
         username: 'Hráč',
         email: 'hrac@example.com',
       };
-
       setUser(userData);
       setLoading(false);
     } catch (error) {
@@ -76,6 +97,12 @@ export default function GamePage(): JSX.Element {
       navigate('/login');
     }
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
 
   const handleLogout = (): void => {
     localStorage.removeItem('authToken');
@@ -89,8 +116,8 @@ export default function GamePage(): JSX.Element {
 
   const generateMapGrid = (): JSX.Element[] => {
     const grid = [];
-    for (let row = 1; row <= 20; row++) {
-      for (let col = 1; col <= 20; col++) {
+    for (let row = 1; row <= 100; row++) {
+      for (let col = 1; col <= 100; col++) {
         const cellId = `${col}/${row}`;
         grid.push(
           <div
@@ -122,7 +149,9 @@ export default function GamePage(): JSX.Element {
             <div className="game-map-header">
               <div className="game-map-header-left">
                 <h3 className="game-map-title">Herní mapa</h3>
-                {selectedCell && <div className="selected-info">Vybráno: {selectedCell}</div>}
+                {selectedCell && (
+                  <div className="selected-info">Vybráno: {selectedCell}</div>
+                )}
               </div>
               <div className="game-map-header-right">
                 <button onClick={() => navigate('/')} className="game-header__logout">
@@ -135,25 +164,35 @@ export default function GamePage(): JSX.Element {
             </div>
 
             <div
+              ref={containerRef}
               className={`game-map-content ${isDragging ? 'dragging' : ''}`}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
-              <div
-                ref={dragRef}
-                className="map-drag-container"
-                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-              >
+              <div ref={dragRef} className="map-drag-container">
                 <div className="game-map-grid">{generateMapGrid()}</div>
               </div>
             </div>
 
             <div className="game-map-footer">
-              <button className="game-button game-button--secondary game-button--small">Nastavení</button>
-              <button className="game-button game-button--secondary game-button--small">Žebříček</button>
-              <button onClick={() => setIsMapFullscreen(true)} className="game-button game-button--primary game-button--small">
+              <button
+                onClick={() => alert('Nastavení - TODO')}
+                className="game-button game-button--secondary game-button--small"
+              >
+                Nastavení
+              </button>
+              <button
+                onClick={() => alert('Žebříček - TODO')}
+                className="game-button game-button--secondary game-button--small"
+              >
+                Žebříček
+              </button>
+              <button
+                onClick={() => setIsMapFullscreen(true)}
+                className="game-button game-button--primary game-button--small"
+              >
                 Fullscreen mapa
               </button>
             </div>
