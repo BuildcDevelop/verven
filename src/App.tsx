@@ -1,7 +1,7 @@
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { useConvex } from "convex/react"; // ✅ Použijte existující Convex z main.tsx
 import { createGameService } from './services/GameService';
 import './App.css';
 
@@ -9,10 +9,6 @@ import './App.css';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import GamePage from "./components/GamePage";
-
-// Inicializace Convex a GameService
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
-const gameService = createGameService(convex);
 
 // ============================================================
 // 404 KOMPONENTA
@@ -86,9 +82,15 @@ function NotFound(): JSX.Element {
 }
 
 // ============================================================
-// ROUTING APP
+// HLAVNÍ APP KOMPONENTA (bez ConvexProvider - už je v main.tsx)
 // ============================================================
-function AppRoutes(): JSX.Element {
+function App(): JSX.Element {
+  // ✅ Získejte Convex client z contextu
+  const convex = useConvex();
+  
+  // ✅ Vytvořte GameService using existing Convex client
+  const gameService = createGameService(convex);
+
   return (
     <Router>
       <div className="App">
@@ -100,17 +102,6 @@ function AppRoutes(): JSX.Element {
         </Routes>
       </div>
     </Router>
-  );
-}
-
-// ============================================================
-// HLAVNÍ APP KOMPONENTA S CONVEX PROVIDEREM
-// ============================================================
-function App(): JSX.Element {
-  return (
-    <ConvexProvider client={convex}>
-      <AppRoutes />
-    </ConvexProvider>
   );
 }
 
