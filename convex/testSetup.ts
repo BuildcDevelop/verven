@@ -1,4 +1,7 @@
 // convex/testSetup.ts - Pro rychlé testování
+import { mutation } from "./_generated/server"; // ✅ PŘIDAT IMPORT
+import { v } from "convex/values";
+
 export const createTestWorlds = mutation({
   handler: async (ctx) => {
     const testWorlds = [

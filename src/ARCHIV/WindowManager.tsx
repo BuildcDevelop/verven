@@ -1,6 +1,6 @@
 // WindowManager.tsx - Opravená komponenta bez nekonečné smyčky
 import React, { useCallback, useMemo } from 'react';
-import { useGameStore } from '../../stores/gameStore';
+import { useGameStore } from './gameStore';
 import './WindowManager.css';
 
 interface GameWindow {

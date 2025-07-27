@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useState, useEffect } from 'react';
-import { ProvinceCreatorProps, Position } from '../../types/game-types';
+import { ProvinceCreatorProps, Position } from '../types/game-types';
 
 const ProvinceCreator: React.FC<ProvinceCreatorProps> = ({
   isOpen,
