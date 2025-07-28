@@ -1,7 +1,7 @@
 // src/stores/gameStore.ts
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { Province, Player } from '../types/game-types';
+import { Province } from '../types/game-types';
 
 // ============================================================
 // TYPY PRO WINDOW MANAGEMENT
@@ -136,34 +136,14 @@ export const useGameStore = create<GameStoreState>()(
     // ============================================================
 
     openWindow: (type, title, options = {}) => {
-      const windows = get().windows;
-      const existingWindow = windows.find(w => w.type === type);
+      const windowId = `${type}-${Date.now()}`;
       
-      if (existingWindow) {
-        // Pokud okno už existuje, přiveď ho do popředí
-        get().bringToFront(existingWindow.id);
-        return;
-      }
-
-      const id = `window-${type}-${Date.now()}`;
-      const defaultSize = {
-        inventory: { width: 300, height: 250 },
-        buildings: { width: 350, height: 300 },
-        research: { width: 400, height: 350 },
-        'province-detail': { width: 320, height: 280 },
-        'army-detail': { width: 380, height: 320 },
-        diplomacy: { width: 450, height: 400 }
-      };
-
       const newWindow: GameWindow = {
-        id,
+        id: windowId,
         type,
         title,
-        position: { 
-          x: 100 + (windows.length * 30), 
-          y: 100 + (windows.length * 30) 
-        },
-        size: defaultSize[type] || { width: 300, height: 250 },
+        position: options.position || { x: 100, y: 100 },
+        size: options.size || { width: 300, height: 400 },
         isVisible: true,
         isMinimized: false,
         ...options
@@ -171,8 +151,8 @@ export const useGameStore = create<GameStoreState>()(
 
       set(state => ({
         windows: [...state.windows, newWindow],
-        windowOrder: [...state.windowOrder, id],
-        activeWindow: id
+        activeWindow: windowId,
+        windowOrder: [...state.windowOrder, windowId]
       }));
     },
 
