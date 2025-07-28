@@ -219,24 +219,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
   // OPRAVENÝ SYNC USEEFFECT - BEZ FUNCTION DEPENDENCIES 🔧
   // ============================================================
 
-  // PŮVODNĚ PROBLEMATICKÝ:
-  /*
-  useEffect(() => {
-    if (!dragStateRef.current.isDragging && windowRef.current) {
-      const storePos = window.position || { x: 100, y: 100 };
-      const domPos = getCurrentDOMPosition();
-      
-      const diffX = Math.abs(storePos.x - domPos.x);
-      const diffY = Math.abs(storePos.y - domPos.y);
-      
-      if (diffX > 2 || diffY > 2) {
-        console.log('🔄 Syncing DOM with store position:', storePos);
-        updateWindowPosition(storePos.x, storePos.y);  // ← ZPŮSOBUJE OVERLAP GLITCH
-      }
-    }
-  }, [window.position, getCurrentDOMPosition, updateWindowPosition]); // ← Function dependencies
-  */
-
   // NOVÝ STABILNÍ SYNC - OVERLAP FIX:
   useEffect(() => {
     // Skip sync during drag nebo pokud není mounted
@@ -312,22 +294,43 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
   }, [window.id]); // Only depend on window.id, not position
 
   // ============================================================
-  // WINDOW STYLE WITH CLEAN POSITIONING (FIXED DEPENDENCIES)
+  // 🔧 NOVÝ DYNAMICKÝ Z-INDEX SYSTÉM
+  // ============================================================
+
+  // Get all windows for z-index calculation
+  const allWindows = useGameStore((state) => state.windows);
+
+  const getZIndex = useCallback(() => {
+    const baseZIndex = 1000;
+    
+    if (dragStateRef.current?.isDragging) {
+      return baseZIndex + 200;  // Dragging = highest
+    }
+    
+    if (isActive) {
+      return baseZIndex + 100;  // Active = high
+    }
+    
+    // Window order index for stable layering
+    const windowIndex = allWindows.findIndex(w => w.id === window.id);
+    return baseZIndex + windowIndex;
+  }, [isActive, allWindows, window.id]);
+
+  // ============================================================
+  // WINDOW STYLE S DYNAMICKÝM Z-INDEX
   // ============================================================
 
   const windowStyle = useMemo(() => ({
     position: 'absolute' as const,
     left: 0,
     top: 0,
-    // IMPORTANT: Don't set transform here if we're setting it manually
-    // transform: `translate(${window.position.x}px, ${window.position.y}px)`,
     width: window.size.width,
     height: window.isMinimized ? 'auto' : window.size.height,
-    zIndex: isActive ? 1000 : 900,
+    zIndex: getZIndex(),  // 🔧 Dynamický z-index místo static
     opacity: window.isMinimized ? 0.9 : 1,
-    transition: dragStateRef.current?.isDragging ? 'none' : 'opacity 0.2s ease, z-index 0s',
-    willChange: 'transform', // Optimize for animations
-  }), [window.size.width, window.size.height, window.isMinimized, isActive]); // Removed position dependencies
+    transition: dragStateRef.current?.isDragging ? 'none' : 'opacity 0.2s ease',
+    willChange: 'transform',
+  }), [window.size.width, window.size.height, window.isMinimized, getZIndex]);
 
   // Apply initial position ONLY when component mounts, not on every position change
   useEffect(() => {
@@ -384,7 +387,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
               color: 'rgba(255, 255, 255, 0.6)',
               marginLeft: '8px'
             }}>
-              ({Math.round(window.position.x)}, {Math.round(window.position.y)})
+              ({Math.round(window.position.x)}, {Math.round(window.position.y)}) z:{getZIndex()}
             </span>
           )}
         </div>
@@ -761,14 +764,26 @@ const WindowManager: React.FC = () => {
     setWindowDragging(isDragging);
   }, [setWindowDragging]);
 
-  // Sort windows by order (memoized to prevent unnecessary re-renders)
+  // ============================================================
+  // 🔧 STABILNÍ WINDOWS - BEZ SORTING
+  // ============================================================
+
+  // PŮVODNĚ PROBLEMATICKÉ:
+  /*
   const sortedWindows = useMemo(() => {
     return [...windows].sort((a, b) => {
       const aIndex = windowOrder.indexOf(a.id);
       const bIndex = windowOrder.indexOf(b.id);
-      return aIndex - bIndex;
+      return aIndex - bIndex;  // ← ZPŮSOBUJE DOM REORDERING
     });
-  }, [windows, windowOrder]);
+  }, [windows, windowOrder]);  // ← windowOrder dependency
+  */
+
+  // NOVÉ STABILNÍ - žádné sorting, z-index řeší layering:
+  const stableWindows = useMemo(() => {
+    // Windows v původním pořadí, z-index řeší vrstvy
+    return windows;
+  }, [windows]);  // ← POUZE windows dependency = stabilní
 
   // Cleanup throttle map when component unmounts
   useEffect(() => {
@@ -779,7 +794,7 @@ const WindowManager: React.FC = () => {
 
   return (
     <div className="window-manager">
-      {sortedWindows.map((window) => (
+      {stableWindows.map((window) => (
         <DraggableWindow
           key={window.id}
           window={window}
@@ -817,13 +832,13 @@ const WindowManager: React.FC = () => {
           border: '1px solid rgba(52, 211, 153, 0.3)',
           maxWidth: '250px'
         }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🪟 Window System:</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🪟 Z-Index Window System:</div>
           <div>Count: {windows.length} | Active: {activeWindow?.slice(-8)}</div>
           <div style={{ color: isDraggingWindow ? '#fbbf24' : '#34d399' }}>
             Status: {isDraggingWindow ? 'DRAGGING' : 'IDLE'}
           </div>
           <div style={{ fontSize: '9px', opacity: 0.7, marginTop: '4px' }}>
-            Order: [{windowOrder.map(id => id.slice(-4)).join(', ')}]
+            Stable Order: [{windows.map(w => w.id.slice(-4)).join(' → ')}]
           </div>
           {!isDraggingWindow && windows.map(w => (
             <div key={w.id} style={{ fontSize: '8px', opacity: 0.8 }}>
@@ -834,7 +849,7 @@ const WindowManager: React.FC = () => {
           ))}
           {isDraggingWindow && (
             <div style={{ fontSize: '8px', color: '#fbbf24', marginTop: '4px' }}>
-              Position updates paused during drag
+              Z-Index handling active drag
             </div>
           )}
         </div>
