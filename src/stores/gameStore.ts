@@ -38,6 +38,7 @@ interface GameStoreState {
   windows: GameWindow[];
   activeWindow: string | null;
   windowOrder: string[];
+  isDraggingWindow: boolean;  // NEW: Track dragging state
   
   // Game State
   selectedProvince: Province | null;
@@ -58,6 +59,7 @@ interface GameStoreState {
   toggleWindow: (id: string) => void;
   bringToFront: (id: string) => void;
   setWindowPosition: (id: string, position: { x: number; y: number }) => void;
+  setWindowDragging: (isDragging: boolean) => void;  // NEW: Set drag state
   setSelectedProvince: (province: Province | null) => void;
   setCurrentUnitType: (type: number) => void;
   setMapPosition: (position: { x: number; y: number }) => void;
@@ -123,6 +125,7 @@ export const useGameStore = create<GameStoreState>()(
     windows: [],
     activeWindow: null,
     windowOrder: [],
+    isDraggingWindow: false,
     selectedProvince: null,
     currentUnitType: 0,
     showArmyDetail: false,
@@ -136,14 +139,43 @@ export const useGameStore = create<GameStoreState>()(
     // ============================================================
 
     openWindow: (type, title, options = {}) => {
-      const windowId = `${type}-${Date.now()}`;
+      const windows = get().windows;
+      
+      // Check if window of this type already exists
+      const existingWindow = windows.find(w => w.type === type && w.isVisible);
+      
+      if (existingWindow) {
+        // Just bring existing window to front
+        get().bringToFront(existingWindow.id);
+        return;
+      }
+
+      const id = `window-${type}-${Date.now()}`;
+      
+      // Better default sizes per window type
+      const defaultSize = {
+        inventory: { width: 280, height: 320 },
+        buildings: { width: 350, height: 380 },
+        research: { width: 400, height: 420 },
+        'province-detail': { width: 340, height: 400 },
+        'army-detail': { width: 380, height: 350 },
+        diplomacy: { width: 450, height: 480 }
+      };
+
+      // Smart positioning - avoid overlap
+      const baseX = 50;
+      const baseY = 100;
+      const offset = (windows.length % 5) * 40; // Cascade windows
       
       const newWindow: GameWindow = {
-        id: windowId,
+        id,
         type,
         title,
-        position: options.position || { x: 100, y: 100 },
-        size: options.size || { width: 300, height: 400 },
+        position: { 
+          x: baseX + offset, 
+          y: baseY + offset 
+        },
+        size: defaultSize[type] || { width: 300, height: 250 },
         isVisible: true,
         isMinimized: false,
         ...options
@@ -151,8 +183,8 @@ export const useGameStore = create<GameStoreState>()(
 
       set(state => ({
         windows: [...state.windows, newWindow],
-        activeWindow: windowId,
-        windowOrder: [...state.windowOrder, windowId]
+        windowOrder: [...state.windowOrder, id],
+        activeWindow: id
       }));
     },
 
@@ -192,6 +224,10 @@ export const useGameStore = create<GameStoreState>()(
           w.id === id ? { ...w, position } : w
         )
       }));
+    },
+
+    setWindowDragging: (isDragging) => {
+      set({ isDraggingWindow: isDragging });
     },
 
     // ============================================================
@@ -239,11 +275,13 @@ export const useWindowManager = () => useGameStore(state => ({
   windows: state.windows,
   activeWindow: state.activeWindow,
   windowOrder: state.windowOrder,
+  isDraggingWindow: state.isDraggingWindow,
   openWindow: state.openWindow,
   closeWindow: state.closeWindow,
   toggleWindow: state.toggleWindow,
   bringToFront: state.bringToFront,
-  setWindowPosition: state.setWindowPosition
+  setWindowPosition: state.setWindowPosition,
+  setWindowDragging: state.setWindowDragging
 }));
 
 export const useMapState = () => useGameStore(state => ({
