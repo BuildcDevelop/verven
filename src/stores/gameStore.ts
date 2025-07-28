@@ -162,24 +162,48 @@ export const useGameStore = create<GameStoreState>()(
         diplomacy: { width: 450, height: 480 }
       };
 
-      // Smart positioning - avoid overlap
+      // Smart positioning - avoid overlap with validation
       const baseX = 50;
       const baseY = 100;
       const offset = (windows.length % 5) * 40; // Cascade windows
       
+      // Ensure positions are valid numbers
+      const positionX = typeof (baseX + offset) === 'number' && !isNaN(baseX + offset) ? baseX + offset : 50;
+      const positionY = typeof (baseY + offset) === 'number' && !isNaN(baseY + offset) ? baseY + offset : 100;
+      
+      console.log('🆕 Creating new window:', {
+        id,
+        type,
+        position: { x: positionX, y: positionY },
+        size: defaultSize[type] || { width: 300, height: 250 }
+      });
+
       const newWindow: GameWindow = {
         id,
         type,
         title,
         position: { 
-          x: baseX + offset, 
-          y: baseY + offset 
+          x: positionX, 
+          y: positionY 
         },
         size: defaultSize[type] || { width: 300, height: 250 },
         isVisible: true,
         isMinimized: false,
         ...options
       };
+
+      // Validate options position if provided
+      if (options.position) {
+        const optionsX = options.position.x;
+        const optionsY = options.position.y;
+        
+        if (typeof optionsX === 'number' && !isNaN(optionsX) &&
+            typeof optionsY === 'number' && !isNaN(optionsY)) {
+          newWindow.position = { x: optionsX, y: optionsY };
+        } else {
+          console.warn('⚠️ Invalid position in options, using default:', options.position);
+        }
+      }
 
       set(state => ({
         windows: [...state.windows, newWindow],
@@ -219,9 +243,17 @@ export const useGameStore = create<GameStoreState>()(
     },
 
     setWindowPosition: (id, position) => {
+      // Validate position before storing
+      const validX = typeof position.x === 'number' && !isNaN(position.x) ? position.x : 100;
+      const validY = typeof position.y === 'number' && !isNaN(position.y) ? position.y : 100;
+      
+      if (position.x !== validX || position.y !== validY) {
+        console.warn('⚠️ Invalid position provided to setWindowPosition:', position, 'using:', { x: validX, y: validY });
+      }
+      
       set(state => ({
         windows: state.windows.map(w => 
-          w.id === id ? { ...w, position } : w
+          w.id === id ? { ...w, position: { x: validX, y: validY } } : w
         )
       }));
     },

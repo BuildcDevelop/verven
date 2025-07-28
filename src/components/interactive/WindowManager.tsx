@@ -15,15 +15,17 @@ interface DraggableWindowProps {
   onClose: (id: string) => void;
   onToggleMinimize: (id: string) => void;
   onPositionChange: (id: string, position: { x: number; y: number }) => void;
+  onDragStateChange: (isDragging: boolean) => void;  // NEW: Drag state callback
 }
 
-const DraggableWindow: React.FC<DraggableWindowProps> = ({
+const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
   window,
   isActive,
   onBringToFront,
   onClose,
   onToggleMinimize,
-  onPositionChange
+  onPositionChange,
+  onDragStateChange
 }) => {
   // Refs pro smooth dragging
   const windowRef = useRef<HTMLDivElement>(null);
@@ -32,7 +34,9 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     startX: 0,
     startY: 0,
     windowStartX: 0,
-    windowStartY: 0
+    windowStartY: 0,
+    finalX: 0,  // Store final position for mouseUp
+    finalY: 0
   });
   const animationFrameRef = useRef<number>();
 
@@ -43,40 +47,41 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   const updateWindowPosition = useCallback((x: number, y: number) => {
     if (!windowRef.current) return;
     
-    // Get actual viewport dimensions
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // Ensure window stays within bounds
-    const maxX = Math.max(0, viewportWidth - window.size.width);
-    const maxY = Math.max(0, viewportHeight - window.size.height - 70); // 70px for navigation
-    
-    const constrainedX = Math.max(0, Math.min(maxX, x));
-    const constrainedY = Math.max(70, Math.min(maxY + 70, y)); // Navigation offset
-    
-    console.log('updateWindowPosition:', {
-      input: { x, y },
-      constrained: { x: constrainedX, y: constrainedY },
-      viewport: { viewportWidth, viewportHeight },
-      windowSize: window.size
-    });
-    
-    // Apply transform immediately for 60fps smooth movement
-    const transform = `translate(${constrainedX}px, ${constrainedY}px)`;
-    windowRef.current.style.transform = transform;
-    
-    console.log('Applied transform:', transform);
-    
-    // Debounced store update
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
+    // Validate input parameters
+    if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
+      console.error('❌ Invalid position parameters:', { x, y });
+      return;
     }
     
-    animationFrameRef.current = requestAnimationFrame(() => {
-      console.log('Updating store position:', { x: constrainedX, y: constrainedY });
-      onPositionChange(window.id, { x: constrainedX, y: constrainedY });
-    });
-  }, [window.id, window.size, onPositionChange]);
+    // Get viewport dimensions with fallbacks
+    const viewportWidth = window.innerWidth || 1920;
+    const viewportHeight = window.innerHeight || 1080;
+    const windowWidth = window.size?.width || 300;
+    const windowHeight = window.size?.height || 250;
+    
+    // Calculate bounds
+    const navigationHeight = 70;
+    const maxX = Math.max(0, viewportWidth - windowWidth);
+    const maxY = Math.max(navigationHeight, viewportHeight - windowHeight);
+    
+    // Constrain position
+    const constrainedX = Math.max(0, Math.min(maxX, x));
+    const constrainedY = Math.max(navigationHeight, Math.min(maxY, y));
+    
+    // Final validation
+    if (isNaN(constrainedX) || isNaN(constrainedY)) {
+      console.error('❌ Constrained position is NaN');
+      return;
+    }
+    
+    // Apply transform immediately for smooth movement
+    windowRef.current.style.transform = `translate(${constrainedX}px, ${constrainedY}px)`;
+    
+    // Store final position in component state for mouseUp
+    dragStateRef.current.finalX = constrainedX;
+    dragStateRef.current.finalY = constrainedY;
+    
+  }, [window.id, window.size]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Don't drag when clicking control buttons
@@ -88,25 +93,29 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Starting drag for window:', window.id, 'at position:', window.position);
+    console.log('🎯 Starting drag for window:', window.id);
     
     // Bring to front immediately
     onBringToFront(window.id);
     
-    // Get current actual position from DOM element
-    const rect = windowRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    // Use store position as starting point (always reliable)
+    const startX = window.position?.x ?? 100;
+    const startY = window.position?.y ?? 100;
     
-    // Set up drag state with actual current position
+    // Validate starting position
+    const validStartX = typeof startX === 'number' && !isNaN(startX) ? startX : 100;
+    const validStartY = typeof startY === 'number' && !isNaN(startY) ? startY : 100;
+    
+    console.log('📍 Drag starting from validated position:', { x: validStartX, y: validStartY });
+    
+    // Set up drag state with validated values
     dragStateRef.current = {
       isDragging: true,
       startX: e.clientX,
       startY: e.clientY,
-      windowStartX: rect.left,
-      windowStartY: rect.top
+      windowStartX: validStartX,
+      windowStartY: validStartY
     };
-    
-    console.log('Drag state initialized:', dragStateRef.current);
     
     // Add global listeners
     document.addEventListener('mousemove', handleMouseMove, { passive: false });
@@ -116,32 +125,73 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     if (windowRef.current) {
       windowRef.current.classList.add('window--dragging');
     }
-  }, [window.id, window.position, onBringToFront]);
+    
+    // Update global drag state
+    onDragStateChange(true);
+  }, [window.id, window.position, onBringToFront, onDragStateChange]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!dragStateRef.current.isDragging) return;
     
     e.preventDefault();
     
-    // Calculate new position based on mouse delta
-    const deltaX = e.clientX - dragStateRef.current.startX;
-    const deltaY = e.clientY - dragStateRef.current.startY;
+    // Validate mouse coordinates
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
     
+    if (typeof mouseX !== 'number' || typeof mouseY !== 'number' || 
+        isNaN(mouseX) || isNaN(mouseY)) {
+      console.error('❌ Invalid mouse coordinates:', { mouseX, mouseY });
+      return;
+    }
+    
+    // Calculate delta with validation
+    const deltaX = mouseX - dragStateRef.current.startX;
+    const deltaY = mouseY - dragStateRef.current.startY;
+    
+    if (isNaN(deltaX) || isNaN(deltaY)) {
+      console.error('❌ Invalid delta calculation:', { 
+        deltaX, deltaY, 
+        mouseX, mouseY, 
+        startX: dragStateRef.current.startX, 
+        startY: dragStateRef.current.startY 
+      });
+      return;
+    }
+    
+    // Calculate new position with validation
     const newX = dragStateRef.current.windowStartX + deltaX;
     const newY = dragStateRef.current.windowStartY + deltaY;
     
-    console.log('Mouse move - Delta:', { deltaX, deltaY }, 'New position:', { newX, newY });
+    if (isNaN(newX) || isNaN(newY)) {
+      console.error('❌ Invalid new position calculation:', { 
+        newX, newY, 
+        windowStartX: dragStateRef.current.windowStartX,
+        windowStartY: dragStateRef.current.windowStartY,
+        deltaX, deltaY 
+      });
+      return;
+    }
     
-    // Update position smoothly
+    // Update position smoothly (no console log spam)
     updateWindowPosition(newX, newY);
   }, [updateWindowPosition]);
 
   const handleMouseUp = useCallback(() => {
     if (!dragStateRef.current.isDragging) return;
     
-    console.log('Drag ended for window:', window.id);
+    console.log('🔚 Drag ended for window:', window.id);
     
     dragStateRef.current.isDragging = false;
+    
+    // Use stored final position instead of parsing DOM
+    const finalX = dragStateRef.current.finalX || window.position?.x || 100;
+    const finalY = dragStateRef.current.finalY || window.position?.y || 100;
+    
+    if (!isNaN(finalX) && !isNaN(finalY)) {
+      console.log('💾 Saving final position to store:', { x: finalX, y: finalY });
+      onPositionChange(window.id, { x: finalX, y: finalY });
+    }
     
     // Remove global listeners
     document.removeEventListener('mousemove', handleMouseMove);
@@ -152,11 +202,14 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       windowRef.current.classList.remove('window--dragging');
     }
     
-    // Final position update
+    // Update global drag state
+    onDragStateChange(false);
+    
+    // Cancel any pending animation frame
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
-  }, [handleMouseMove, window.id]);
+  }, [handleMouseMove, window.id, window.position, onDragStateChange, onPositionChange]);
 
   // ============================================================
   // CLEANUP AND ERROR HANDLING
@@ -175,13 +228,13 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     return cleanup;
   }, [handleMouseMove, handleMouseUp]);
 
-  // Debug: Log when component re-renders
+  // Only log on mount, not on every render
   useEffect(() => {
-    console.log('DraggableWindow re-rendered for window:', window.id, 'position:', window.position);
-  });
+    console.log('🪟 DraggableWindow mounted for:', window.id, 'at position:', window.position);
+  }, [window.id]); // Only depend on window.id, not position
 
   // ============================================================
-  // WINDOW STYLE WITH CLEAN POSITIONING
+  // WINDOW STYLE WITH CLEAN POSITIONING (FIXED DEPENDENCIES)
   // ============================================================
 
   const windowStyle = useMemo(() => ({
@@ -196,16 +249,24 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     opacity: window.isMinimized ? 0.9 : 1,
     transition: dragStateRef.current?.isDragging ? 'none' : 'opacity 0.2s ease, z-index 0s',
     willChange: 'transform', // Optimize for animations
-  }), [window.size, window.isMinimized, isActive]);
+  }), [window.size.width, window.size.height, window.isMinimized, isActive]); // Removed position dependencies
 
-  // Apply initial position when component mounts or position changes from store
+  // Apply initial position ONLY when component mounts, not on every position change
   useEffect(() => {
-    if (windowRef.current && !dragStateRef.current.isDragging) {
-      const transform = `translate(${window.position.x}px, ${window.position.y}px)`;
-      console.log('Applying initial/updated transform:', transform, 'for window:', window.id);
+    if (windowRef.current) {
+      // Validate position from store
+      const storeX = window.position?.x ?? 100;
+      const storeY = window.position?.y ?? 100;
+      
+      const validX = typeof storeX === 'number' && !isNaN(storeX) ? storeX : 100;
+      const validY = typeof storeY === 'number' && !isNaN(storeY) ? storeY : 100;
+      
+      const transform = `translate(${validX}px, ${validY}px)`;
+      console.log('🏁 Applying INITIAL transform on mount:', transform, 'for window:', window.id);
+      
       windowRef.current.style.transform = transform;
     }
-  }, [window.position.x, window.position.y, window.id]);
+  }, [window.id]); // ONLY depend on window.id (mount), not position
 
   if (!window.isVisible) return null;
 
@@ -283,7 +344,19 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison - only re-render if these specific props change
+  return (
+    prevProps.window.id === nextProps.window.id &&
+    prevProps.window.size.width === nextProps.window.size.width &&
+    prevProps.window.size.height === nextProps.window.size.height &&
+    prevProps.window.isMinimized === nextProps.window.isMinimized &&
+    prevProps.window.isVisible === nextProps.window.isVisible &&
+    prevProps.window.title === nextProps.window.title &&
+    prevProps.isActive === nextProps.isActive
+    // Specifically NOT comparing window.position to avoid re-renders during drag
+  );
+});
 
 // ============================================================
 // WINDOW ICON HELPER
@@ -541,12 +614,14 @@ const WindowManager: React.FC = () => {
   const windows = useGameStore((state) => state.windows);
   const activeWindow = useGameStore((state) => state.activeWindow);
   const windowOrder = useGameStore((state) => state.windowOrder);
+  const isDraggingWindow = useGameStore((state) => state.isDraggingWindow);
   
   // Actions
   const bringToFront = useGameStore((state) => state.bringToFront);
   const closeWindow = useGameStore((state) => state.closeWindow);
   const toggleWindow = useGameStore((state) => state.toggleWindow);
   const setWindowPosition = useGameStore((state) => state.setWindowPosition);
+  const setWindowDragging = useGameStore((state) => state.setWindowDragging);
 
   // Keyboard shortcuts for windows
   useEffect(() => {
@@ -569,7 +644,7 @@ const WindowManager: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyboard);
   }, [activeWindow, windows, windowOrder, closeWindow, bringToFront]);
 
-  // Memoized callbacks
+  // Memoized callbacks with throttling
   const handleBringToFront = useCallback((id: string) => {
     bringToFront(id);
   }, [bringToFront]);
@@ -582,11 +657,27 @@ const WindowManager: React.FC = () => {
     toggleWindow(id);
   }, [toggleWindow]);
 
+  // Throttled position updates to prevent spam
+  const throttledPositionUpdates = useRef(new Map<string, number>());
+  
   const handlePositionChange = useCallback((id: string, position: { x: number; y: number }) => {
+    const now = Date.now();
+    const lastUpdate = throttledPositionUpdates.current.get(id) || 0;
+    
+    // Throttle to max 10 updates per second per window
+    if (now - lastUpdate < 100) {
+      return;
+    }
+    
+    throttledPositionUpdates.current.set(id, now);
     setWindowPosition(id, position);
   }, [setWindowPosition]);
 
-  // Sort windows by order
+  const handleDragStateChange = useCallback((isDragging: boolean) => {
+    setWindowDragging(isDragging);
+  }, [setWindowDragging]);
+
+  // Sort windows by order (memoized to prevent unnecessary re-renders)
   const sortedWindows = useMemo(() => {
     return [...windows].sort((a, b) => {
       const aIndex = windowOrder.indexOf(a.id);
@@ -594,6 +685,13 @@ const WindowManager: React.FC = () => {
       return aIndex - bIndex;
     });
   }, [windows, windowOrder]);
+
+  // Cleanup throttle map when component unmounts
+  useEffect(() => {
+    return () => {
+      throttledPositionUpdates.current.clear();
+    };
+  }, []);
 
   return (
     <div className="window-manager">
@@ -606,6 +704,7 @@ const WindowManager: React.FC = () => {
           onClose={handleClose}
           onToggleMinimize={handleToggleMinimize}
           onPositionChange={handlePositionChange}
+          onDragStateChange={handleDragStateChange}
         />
       ))}
       
@@ -634,16 +733,49 @@ const WindowManager: React.FC = () => {
           border: '1px solid rgba(52, 211, 153, 0.3)',
           maxWidth: '250px'
         }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🪟 Window Debug:</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🪟 Window System:</div>
           <div>Count: {windows.length} | Active: {activeWindow?.slice(-8)}</div>
-          <div>Order: [{windowOrder.map(id => id.slice(-4)).join(', ')}]</div>
-          {windows.map(w => (
-            <div key={w.id} style={{ fontSize: '9px', opacity: 0.8 }}>
-              {w.id.slice(-8)}: ({Math.round(w.position.x)}, {Math.round(w.position.y)})
+          <div style={{ color: isDraggingWindow ? '#fbbf24' : '#34d399' }}>
+            Status: {isDraggingWindow ? 'DRAGGING' : 'IDLE'}
+          </div>
+          <div style={{ fontSize: '9px', opacity: 0.7, marginTop: '4px' }}>
+            Order: [{windowOrder.map(id => id.slice(-4)).join(', ')}]
+          </div>
+          {!isDraggingWindow && windows.map(w => (
+            <div key={w.id} style={{ fontSize: '8px', opacity: 0.8 }}>
+              {w.type}: ({Math.round(w.position?.x || 0)}, {Math.round(w.position?.y || 0)})
               {w.isMinimized ? ' [MIN]' : ''}
               {activeWindow === w.id ? ' [ACTIVE]' : ''}
             </div>
           ))}
+          {isDraggingWindow && (
+            <div style={{ fontSize: '8px', color: '#fbbf24', marginTop: '4px' }}>
+              Position updates paused during drag
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Visual Drag Indicator */}
+      {isDraggingWindow && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(74, 144, 226, 0.9)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          zIndex: 1500,
+          pointerEvents: 'none',
+          border: '2px solid rgba(255, 255, 255, 0.3)',
+          backdropFilter: 'blur(10px)',
+          animation: 'pulse 1s ease-in-out infinite'
+        }}>
+          🚀 Přesouvání okna...
         </div>
       )}
     </div>
