@@ -216,25 +216,84 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
   }, [window.id, window.position, onPositionChange, onDragStateChange]);
 
   // ============================================================
-  // OPRAVENÝ CLEANUP A SYNC
+  // OPRAVENÝ SYNC USEEFFECT - BEZ FUNCTION DEPENDENCIES 🔧
   // ============================================================
 
-  // Sync DOM with store position when not dragging
+  // PŮVODNĚ PROBLEMATICKÝ:
+  /*
   useEffect(() => {
     if (!dragStateRef.current.isDragging && windowRef.current) {
       const storePos = window.position || { x: 100, y: 100 };
       const domPos = getCurrentDOMPosition();
       
-      // Only update if positions differ significantly
       const diffX = Math.abs(storePos.x - domPos.x);
       const diffY = Math.abs(storePos.y - domPos.y);
       
       if (diffX > 2 || diffY > 2) {
         console.log('🔄 Syncing DOM with store position:', storePos);
-        updateWindowPosition(storePos.x, storePos.y);
+        updateWindowPosition(storePos.x, storePos.y);  // ← ZPŮSOBUJE OVERLAP GLITCH
       }
     }
-  }, [window.position, getCurrentDOMPosition, updateWindowPosition]);
+  }, [window.position, getCurrentDOMPosition, updateWindowPosition]); // ← Function dependencies
+  */
+
+  // NOVÝ STABILNÍ SYNC - OVERLAP FIX:
+  useEffect(() => {
+    // Skip sync during drag nebo pokud není mounted
+    if (dragStateRef.current.isDragging || !windowRef.current) {
+      return;
+    }
+
+    const storePos = window.position || { x: 100, y: 100 };
+    
+    // Přečti DOM pozici inline (bez function dependency)
+    let domPos = { x: storePos.x, y: storePos.y }; // fallback
+    const transform = windowRef.current.style.transform;
+    if (transform && transform !== 'none') {
+      const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+      if (match) {
+        const x = parseFloat(match[1]);
+        const y = parseFloat(match[2]);
+        if (!isNaN(x) && !isNaN(y)) {
+          domPos = { x, y };
+        }
+      }
+    }
+    
+    // Sync POUZE pokud je VÝZNAMNÝ rozdíl (větší tolerance)
+    const diffX = Math.abs(storePos.x - domPos.x);
+    const diffY = Math.abs(storePos.y - domPos.y);
+    
+    if (diffX > 10 || diffY > 10) {  // Větší tolerance = méně false sync
+      console.log('🔄 Major position difference, syncing:', { 
+        store: storePos, 
+        dom: domPos, 
+        diff: { x: diffX, y: diffY }
+      });
+      
+      // Inline update position (bez function dependency)
+      if (typeof storePos.x === 'number' && typeof storePos.y === 'number' && 
+          !isNaN(storePos.x) && !isNaN(storePos.y)) {
+        
+        const viewportWidth = window.innerWidth || 1920;
+        const viewportHeight = window.innerHeight || 1080;
+        const windowWidth = window.size?.width || 300;
+        const windowHeight = window.size?.height || 250;
+        const navigationHeight = 70;
+        
+        const maxX = Math.max(0, viewportWidth - windowWidth);
+        const maxY = Math.max(navigationHeight, viewportHeight - windowHeight);
+        
+        const constrainedX = Math.max(0, Math.min(maxX, storePos.x));
+        const constrainedY = Math.max(navigationHeight, Math.min(maxY, storePos.y));
+        
+        windowRef.current.style.transform = `translate(${constrainedX}px, ${constrainedY}px)`;
+        dragStateRef.current.finalX = constrainedX;
+        dragStateRef.current.finalY = constrainedY;
+      }
+    }
+  }, [window.position?.x, window.position?.y, window.size?.width, window.size?.height]); 
+  // ^^^^ POUZE primitive values, žádné funkce = stabilní!
 
   // Cleanup listeners on unmount
   useEffect(() => {
@@ -295,9 +354,15 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
       className={`game-window ${isActive ? 'game-window--active' : ''} ${window.isMinimized ? 'game-window--minimized' : ''}`}
       style={windowStyle}
       onClick={(e) => {
-        // Bring window to front when clicked anywhere
         e.stopPropagation();
-        console.log('Window clicked, bringing to front:', window.id);
+        
+        // 🔧 OVERLAP FIX - Guard pro už aktivní okna
+        if (isActive) {
+          console.log('💭 Window already active, skipping bringToFront:', window.id);
+          return;
+        }
+        
+        console.log('👆 Window clicked, bringing to front:', window.id);
         onBringToFront(window.id);
       }}
     >

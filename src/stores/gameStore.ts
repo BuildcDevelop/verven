@@ -230,14 +230,16 @@ export const useGameStore = create<GameStoreState>()(
       }));
     },
 
+    // ============================================================
+    // 🔧 OPRAVENÁ bringToFront - BEZ DOM REORDERING
+    // ============================================================
     bringToFront: (id) => {
       set(state => {
-        const newWindowOrder = state.windowOrder.filter(wId => wId !== id);
-        newWindowOrder.push(id);
-        
+        // POUZE změň activeWindow, windowOrder ponech stabilní!
+        // Z-Index se bude řešit dynamicky v komponentě
         return {
-          windowOrder: newWindowOrder,
           activeWindow: id
+          // windowOrder: zůstává stejný → žádný DOM reordering!
         };
       });
     },
