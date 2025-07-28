@@ -83,6 +83,38 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     
   }, [window.id, window.size]);
 
+  // ============================================================
+  // PŘIDANÁ HELPER FUNKCE - getCurrentDOMPosition
+  // ============================================================
+
+  const getCurrentDOMPosition = useCallback((): { x: number; y: number } => {
+    if (!windowRef.current) {
+      return { x: window.position?.x || 100, y: window.position?.y || 100 };
+    }
+
+    const transform = windowRef.current.style.transform;
+    if (!transform || transform === 'none') {
+      return { x: window.position?.x || 100, y: window.position?.y || 100 };
+    }
+
+    // Parse current DOM transform values
+    const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+    if (match) {
+      const x = parseFloat(match[1]);
+      const y = parseFloat(match[2]);
+      if (!isNaN(x) && !isNaN(y)) {
+        return { x, y };
+      }
+    }
+
+    // Fallback to store position
+    return { x: window.position?.x || 100, y: window.position?.y || 100 };
+  }, [window.position]);
+
+  // ============================================================
+  // OPRAVENÁ handleMouseDown FUNKCE
+  // ============================================================
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Don't drag when clicking control buttons
     const target = e.target as HTMLElement;
@@ -98,82 +130,62 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     // Bring to front immediately
     onBringToFront(window.id);
     
-    // Use store position as starting point (always reliable)
-    const startX = window.position?.x ?? 100;
-    const startY = window.position?.y ?? 100;
+    // *** KLÍČOVÁ OPRAVA *** - použij DOM pozici místo store pozice
+    const currentPos = getCurrentDOMPosition();
+    const startX = currentPos.x;
+    const startY = currentPos.y;
     
     // Validate starting position
     const validStartX = typeof startX === 'number' && !isNaN(startX) ? startX : 100;
     const validStartY = typeof startY === 'number' && !isNaN(startY) ? startY : 100;
     
-    console.log('📍 Drag starting from validated position:', { x: validStartX, y: validStartY });
+    console.log('📍 Drag starting from validated DOM position:', { x: validStartX, y: validStartY });
     
-    // Set up drag state with validated values
+    // Initialize drag state with DOM position
     dragStateRef.current = {
       isDragging: true,
       startX: e.clientX,
       startY: e.clientY,
-      windowStartX: validStartX,
-      windowStartY: validStartY
+      windowStartX: validStartX,  // *** OPRAVA *** - DOM pozice místo store
+      windowStartY: validStartY,  // *** OPRAVA *** - DOM pozice místo store
+      finalX: validStartX,
+      finalY: validStartY
     };
     
-    // Add global listeners
-    document.addEventListener('mousemove', handleMouseMove, { passive: false });
-    document.addEventListener('mouseup', handleMouseUp);
+    onDragStateChange(true);
     
     // Add dragging class for visual feedback
     if (windowRef.current) {
       windowRef.current.classList.add('window--dragging');
     }
     
-    // Update global drag state
-    onDragStateChange(true);
-  }, [window.id, window.position, onBringToFront, onDragStateChange]);
+    // Attach global listeners
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+  }, [window.id, getCurrentDOMPosition, onBringToFront, onDragStateChange]);
+
+  // ============================================================
+  // PŘIDANÉ CHYBĚJÍCÍ MOUSE HANDLERS
+  // ============================================================
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!dragStateRef.current.isDragging) return;
     
-    e.preventDefault();
+    // Calculate movement delta
+    const deltaX = e.clientX - dragStateRef.current.startX;
+    const deltaY = e.clientY - dragStateRef.current.startY;
     
-    // Validate mouse coordinates
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-    
-    if (typeof mouseX !== 'number' || typeof mouseY !== 'number' || 
-        isNaN(mouseX) || isNaN(mouseY)) {
-      console.error('❌ Invalid mouse coordinates:', { mouseX, mouseY });
-      return;
-    }
-    
-    // Calculate delta with validation
-    const deltaX = mouseX - dragStateRef.current.startX;
-    const deltaY = mouseY - dragStateRef.current.startY;
-    
-    if (isNaN(deltaX) || isNaN(deltaY)) {
-      console.error('❌ Invalid delta calculation:', { 
-        deltaX, deltaY, 
-        mouseX, mouseY, 
-        startX: dragStateRef.current.startX, 
-        startY: dragStateRef.current.startY 
-      });
-      return;
-    }
-    
-    // Calculate new position with validation
+    // Calculate new position
     const newX = dragStateRef.current.windowStartX + deltaX;
     const newY = dragStateRef.current.windowStartY + deltaY;
     
     if (isNaN(newX) || isNaN(newY)) {
-      console.error('❌ Invalid new position calculation:', { 
-        newX, newY, 
-        windowStartX: dragStateRef.current.windowStartX,
-        windowStartY: dragStateRef.current.windowStartY,
-        deltaX, deltaY 
-      });
+      console.error('❌ Invalid new position calculation:', { newX, newY });
       return;
     }
     
-    // Update position smoothly (no console log spam)
+    // Update position smoothly
     updateWindowPosition(newX, newY);
   }, [updateWindowPosition]);
 
@@ -184,7 +196,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     
     dragStateRef.current.isDragging = false;
     
-    // Use stored final position instead of parsing DOM
+    // Use stored final position
     const finalX = dragStateRef.current.finalX || window.position?.x || 100;
     const finalY = dragStateRef.current.finalY || window.position?.y || 100;
     
@@ -193,39 +205,46 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
       onPositionChange(window.id, { x: finalX, y: finalY });
     }
     
-    // Remove global listeners
+    // Cleanup
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+    onDragStateChange(false);
     
-    // Remove dragging class
     if (windowRef.current) {
       windowRef.current.classList.remove('window--dragging');
     }
-    
-    // Update global drag state
-    onDragStateChange(false);
-    
-    // Cancel any pending animation frame
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-  }, [handleMouseMove, window.id, window.position, onDragStateChange, onPositionChange]);
+  }, [window.id, window.position, onPositionChange, onDragStateChange]);
 
   // ============================================================
-  // CLEANUP AND ERROR HANDLING
+  // OPRAVENÝ CLEANUP A SYNC
   // ============================================================
 
+  // Sync DOM with store position when not dragging
   useEffect(() => {
-    // Cleanup function to remove any lingering listeners
-    const cleanup = () => {
+    if (!dragStateRef.current.isDragging && windowRef.current) {
+      const storePos = window.position || { x: 100, y: 100 };
+      const domPos = getCurrentDOMPosition();
+      
+      // Only update if positions differ significantly
+      const diffX = Math.abs(storePos.x - domPos.x);
+      const diffY = Math.abs(storePos.y - domPos.y);
+      
+      if (diffX > 2 || diffY > 2) {
+        console.log('🔄 Syncing DOM with store position:', storePos);
+        updateWindowPosition(storePos.x, storePos.y);
+      }
+    }
+  }, [window.position, getCurrentDOMPosition, updateWindowPosition]);
+
+  // Cleanup listeners on unmount
+  useEffect(() => {
+    return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-
-    return cleanup;
   }, [handleMouseMove, handleMouseUp]);
 
   // Only log on mount, not on every render
