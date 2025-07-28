@@ -1,3 +1,4 @@
+// src/hooks/useGameDatabase.ts
 // ============================================================
 // REACT HOOK PRO SNADNÉ POUŽITÍ DATABÁZE
 // ============================================================
@@ -15,6 +16,14 @@ import { createGameService } from '../services/GameService';
 export const useGameDatabase = () => {
   const convex = useConvex();
   const gameService = createGameService(convex);
+
+  // ============================================================
+  // STATE DECLARATIONS (CHYBĚJÍCÍ ČÁST!)
+  // ============================================================
+  
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // ============================================================
   // NAČÍTÁNÍ HERNÍHO STAVU
@@ -38,7 +47,7 @@ export const useGameDatabase = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [gameService]);
 
   // ============================================================
   // VYTVOŘENÍ NOVÉ DRŽAVY
@@ -102,7 +111,7 @@ export const useGameDatabase = () => {
     } finally {
       setLoading(false);
     }
-  }, [gameState?.currentPlayer]);
+  }, [gameState?.currentPlayer, gameService]);
 
   // ============================================================
   // PŘIPOJENÍ K ALIANCI
@@ -177,7 +186,7 @@ export const useGameDatabase = () => {
     } finally {
       setLoading(false);
     }
-  }, [gameState?.currentPlayer]);
+  }, [gameState?.currentPlayer, gameService]);
 
   // ============================================================
   // REFRESH HERNÍHO STAVU
