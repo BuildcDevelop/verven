@@ -9,6 +9,7 @@ import './App.css';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import GamePage from "./components/GamePage";
+import InteractivePage from './pages/InteractivePage';
 
 // ============================================================
 // 404 KOMPONENTA
@@ -98,6 +99,7 @@ function App(): JSX.Element {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/game" element={<GamePage gameService={gameService} />} />
+          <Route path="/interactive" element={<InteractivePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
