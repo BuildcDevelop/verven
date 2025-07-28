@@ -57,30 +57,49 @@ const InteractivePage: React.FC = () => {
     
     // Nastav default okna pro demo s malým delay
     const timer1 = setTimeout(() => {
-      openWindow('inventory', 'Inventář', {
-        position: { x: 50, y: 50 },
-        size: { width: 250, height: 300 }
-      });
-    }, 1000);
+    openWindow('inventory'); // Automaticky: "Inventář"
+  }, 1000);
 
-    const timer2 = setTimeout(() => {
-      openWindow('buildings', 'Budovy', {
-        position: { x: 320, y: 80 },
-        size: { width: 280, height: 350 }
-      });
-    }, 1500);
+  const timer2 = setTimeout(() => {
+    openWindow('army-detail', undefined, {
+      data: { provinceName: 'Severní království' }
+    }); // Automaticky: "Armáda: Severní království"
+  }, 1500);
 
-    // Čas běží pro demo
-    const gameTimer = setInterval(() => {
-      setGameTime(prev => prev + 1);
-    }, 1000);
+  return () => {
+    clearTimeout(timer1);
+    clearTimeout(timer2);
+  };
+}, [initializeMockData, openWindow]);
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearInterval(gameTimer);
-    };
-  }, [initializeMockData, openWindow]);
+// ============================================================
+// PŘÍKLADY PRO RŮZNÉ TYPY OKEN
+// ============================================================
+
+// Funkcce pro otevírání oken s kontextem:
+const openProvinceDetail = (provinceName: string) => {
+  openWindow('province-detail', undefined, {
+    data: { provinceName }
+  }); // Automaticky: "Provincie: [název]"
+};
+
+const openArmyDetail = (provinceName: string) => {
+  openWindow('army-detail', undefined, {
+    data: { provinceName }
+  }); // Automaticky: "Armáda: [název]"
+};
+
+const openBuildingsManager = () => {
+  openWindow('buildings'); // Automaticky: "Správa budov"
+};
+
+const openResearchTree = () => {
+  openWindow('research'); // Automaticky: "Výzkum technologií"
+};
+
+const openDiplomacy = () => {
+  openWindow('diplomacy'); // Automaticky: "Diplomacie & Aliance"
+};
 
   // ============================================================
   // HANDLERS
@@ -91,6 +110,16 @@ const InteractivePage: React.FC = () => {
     localStorage.removeItem('userData');
     navigate('/');
   };
+
+  const handleProvinceClick = (provinceName: string) => {
+  console.log('🏰 Opening province detail for:', provinceName);
+  openProvinceDetail(provinceName);
+};
+
+const handleArmyManagement = (provinceName: string) => {
+  console.log('⚔️ Opening army management for:', provinceName);
+  openArmyDetail(provinceName);
+};
 
   // ============================================================
   // LOADING STATE

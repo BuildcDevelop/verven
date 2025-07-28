@@ -15,6 +15,7 @@ export interface GameWindow {
   size: { width: number; height: number };
   isVisible: boolean;
   isMinimized: boolean;
+  data?: any; // 🔧 PŘIDEJ pro dodatečná data (province name, atd.)
 }
 
 export interface GameData {
@@ -38,7 +39,7 @@ interface GameStoreState {
   windows: GameWindow[];
   activeWindow: string | null;
   windowOrder: string[];
-  isDraggingWindow: boolean;  // NEW: Track dragging state
+  isDraggingWindow: boolean;
   
   // Game State
   selectedProvince: Province | null;
@@ -54,12 +55,16 @@ interface GameStoreState {
   playerData: Record<string, PlayerData>;
   
   // Actions
-  openWindow: (type: GameWindow['type'], title: string, options?: Partial<GameWindow>) => void;
+  openWindow: (
+    type: GameWindow['type'], 
+    title?: string,  // 🔧 Optional title 
+    options?: Partial<GameWindow>  // 🔧 Včetně data property
+  ) => void;
   closeWindow: (id: string) => void;
   toggleWindow: (id: string) => void;
   bringToFront: (id: string) => void;
   setWindowPosition: (id: string, position: { x: number; y: number }) => void;
-  setWindowDragging: (isDragging: boolean) => void;  // NEW: Set drag state
+  setWindowDragging: (isDragging: boolean) => void;
   setSelectedProvince: (province: Province | null) => void;
   setCurrentUnitType: (type: number) => void;
   setMapPosition: (position: { x: number; y: number }) => void;
@@ -139,18 +144,21 @@ export const useGameStore = create<GameStoreState>()(
     // ============================================================
 
     openWindow: (type, title, options = {}) => {
-      const windows = get().windows;
-      
-      // Check if window of this type already exists
-      const existingWindow = windows.find(w => w.type === type && w.isVisible);
-      
-      if (existingWindow) {
-        // Just bring existing window to front
-        get().bringToFront(existingWindow.id);
-        return;
-      }
+  const windows = get().windows;
+  
+  // Check if window of this type already exists
+  const existingWindow = windows.find(w => w.type === type && w.isVisible);
+  
+  if (existingWindow) {
+    // Just bring existing window to front
+    get().bringToFront(existingWindow.id);
+    return;
+  }
 
-      const id = `window-${type}-${Date.now()}`;
+  const id = `window-${type}-${Date.now()}`;
+  
+  // 🔧 AUTOMATICKÉ LEPŠÍ NÁZVY
+  const finalTitle = title || getWindowTitle(type, options?.data);
       
       // Better default sizes per window type
       const defaultSize = {
@@ -172,45 +180,46 @@ export const useGameStore = create<GameStoreState>()(
       const positionY = typeof (baseY + offset) === 'number' && !isNaN(baseY + offset) ? baseY + offset : 100;
       
       console.log('🆕 Creating new window:', {
-        id,
-        type,
-        position: { x: positionX, y: positionY },
-        size: defaultSize[type] || { width: 300, height: 250 }
-      });
+    id,
+    type,
+    title: finalTitle,  // 🔧 Lepší název
+    position: { x: positionX, y: positionY },
+    size: defaultSize[type] || { width: 300, height: 250 }
+  });
 
-      const newWindow: GameWindow = {
-        id,
-        type,
-        title,
-        position: { 
-          x: positionX, 
-          y: positionY 
-        },
-        size: defaultSize[type] || { width: 300, height: 250 },
-        isVisible: true,
-        isMinimized: false,
-        ...options
-      };
+  const newWindow: GameWindow = {
+    id,
+    type,
+    title: finalTitle,  // 🔧 Použij lepší název
+    position: { 
+      x: positionX, 
+      y: positionY 
+    },
+    size: defaultSize[type] || { width: 300, height: 250 },
+    isVisible: true,
+    isMinimized: false,
+    ...options
+  };
 
       // Validate options position if provided
       if (options.position) {
-        const optionsX = options.position.x;
-        const optionsY = options.position.y;
-        
-        if (typeof optionsX === 'number' && !isNaN(optionsX) &&
-            typeof optionsY === 'number' && !isNaN(optionsY)) {
-          newWindow.position = { x: optionsX, y: optionsY };
-        } else {
-          console.warn('⚠️ Invalid position in options, using default:', options.position);
-        }
-      }
+    const optionsX = options.position.x;
+    const optionsY = options.position.y;
+    
+    if (typeof optionsX === 'number' && !isNaN(optionsX) &&
+        typeof optionsY === 'number' && !isNaN(optionsY)) {
+      newWindow.position = { x: optionsX, y: optionsY };
+    } else {
+      console.warn('⚠️ Invalid position in options, using default:', options.position);
+    }
+  }
 
-      set(state => ({
-        windows: [...state.windows, newWindow],
-        windowOrder: [...state.windowOrder, id],
-        activeWindow: id
-      }));
-    },
+  set(state => ({
+    windows: [...state.windows, newWindow],
+    windowOrder: [...state.windowOrder, id],
+    activeWindow: id
+  }));
+},
 
     closeWindow: (id) => {
       set(state => ({
@@ -333,3 +342,27 @@ export const useGameData = () => useGameStore(state => ({
   setSelectedProvince: state.setSelectedProvince,
   setCurrentUnitType: state.setCurrentUnitType
 }));
+
+// ============================================================
+// PŘIDEJ DO gameStore.ts - LEPŠÍ NÁZVY OKEN
+// ============================================================
+
+// Přidej helper funkci pro lepší názvy oken
+const getWindowTitle = (type: GameWindow['type'], options?: any): string => {
+  switch (type) {
+    case 'inventory':
+      return 'Inventář';
+    case 'buildings':
+      return 'Správa budov';
+    case 'research':
+      return 'Výzkum technologií';
+    case 'province-detail':
+      return options?.provinceName ? `Provincie: ${options.provinceName}` : 'Detail provincie';
+    case 'army-detail':
+      return options?.provinceName ? `Armáda: ${options.provinceName}` : 'Správa armády';
+    case 'diplomacy':
+      return 'Diplomacie & Aliance';
+    default:
+      return 'Herní okno';
+  }
+};

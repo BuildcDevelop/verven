@@ -47,7 +47,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
   const updateWindowPosition = useCallback((x: number, y: number) => {
     if (!windowRef.current) return;
     
-    // Validate input parameters
     if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
       console.error('❌ Invalid position parameters:', { x, y });
       return;
@@ -349,7 +348,9 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     }
   }, [window.id]); // ONLY depend on window.id (mount), not position
 
-  if (!window.isVisible) return null;
+  if (!window.isVisible || window.isMinimized) {
+    return null;
+  }
 
   return (
     <div
@@ -399,7 +400,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
               console.log('Minimize button clicked for window:', window.id);
               onToggleMinimize(window.id);
             }}
-            title={window.isMinimized ? 'Obnovit' : 'Minimalizovat'}
+            title="Minimalizovat"
           >
             {window.isMinimized ? '□' : '_'}
           </button>

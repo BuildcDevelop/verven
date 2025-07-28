@@ -811,3 +811,194 @@
     font-size: 10px;
   }
 }
+
+/* ============================================================ */
+/* MINIMIZED WINDOWS PANEL - PŘIDEJ DO WindowManager.css */
+/* ============================================================ */
+
+.minimized-windows-panel {
+  position: fixed;
+  left: 10px;
+  top: 80px; /* Pod navigation */
+  width: 200px;
+  max-height: calc(100vh - 120px);
+  background: rgba(20, 25, 35, 0.95);
+  border: 1px solid rgba(100, 120, 150, 0.4);
+  border-radius: 12px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 950;
+  pointer-events: auto;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.minimized-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e8eaed;
+}
+
+.panel-icon {
+  font-size: 14px;
+}
+
+.panel-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e8eaed;
+}
+
+.panel-count {
+  background: rgba(74, 144, 226, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 16px;
+  text-align: center;
+}
+
+.minimized-windows-list {
+  padding: 6px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 120, 150, 0.5) transparent;
+}
+
+.minimized-windows-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.minimized-windows-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.minimized-windows-list::-webkit-scrollbar-thumb {
+  background: rgba(100, 120, 150, 0.5);
+  border-radius: 2px;
+}
+
+/* ============================================================ */
+/* MINIMIZED WINDOW ITEM - JEDNOTNÁ VELIKOST */
+/* ============================================================ */
+
+.minimized-window-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  
+  /* 🔧 JEDNOTNÁ VELIKOST */
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+}
+
+.minimized-window-item:hover {
+  background: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.4);
+  transform: translateX(2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+.minimized-window-item:active {
+  transform: translateX(1px) scale(0.98);
+  background: rgba(74, 144, 226, 0.3);
+}
+
+.minimized-window-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.minimized-window-title {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: #e8eaed;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* ============================================================ */
+/* RESPONSIVE BEHAVIOR */
+/* ============================================================ */
+
+@media (max-width: 1024px) {
+  .minimized-windows-panel {
+    width: 180px;
+    left: 5px;
+  }
+  
+  .minimized-window-title {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .minimized-windows-panel {
+    width: 160px;
+    left: 5px;
+    top: 70px;
+  }
+  
+  .minimized-window-item {
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    padding: 6px 8px;
+  }
+  
+  .minimized-window-icon {
+    font-size: 14px;
+  }
+  
+  .minimized-window-title {
+    font-size: 9px;
+  }
+}
+
+/* ============================================================ */
+/* PANEL ANIMATIONS */
+/* ============================================================ */
+
+.minimized-windows-panel {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Hover effect na celý panel */
+.minimized-windows-panel:hover {
+  border-color: rgba(74, 144, 226, 0.6);
+  box-shadow: 0 12px 40px rgba(74, 144, 226, 0.2);
+}
