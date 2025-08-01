@@ -35,10 +35,16 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     startY: 0,
     windowStartX: 0,
     windowStartY: 0,
-    finalX: 0,  // Store final position for mouseUp
+    finalX: 0,
     finalY: 0
   });
   const animationFrameRef = useRef<number>();
+
+  // ✅ HOOKS PŘESUNUTÉ Z renderWindowContent:
+  const selectedProvince = useGameStore((state) => state.selectedProvince);
+  const gameData = useGameStore((state) => state.gameData);
+  const playerData = useGameStore((state) => state.playerData);
+  const allWindows = useGameStore((state) => state.windows);
 
   // ============================================================
   // SMOOTH DRAG HANDLERS (60fps) - FIXED VERSION
@@ -82,10 +88,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     
   }, [window.id, window.size]);
 
-  // ============================================================
-  // PŘIDANÁ HELPER FUNKCE - getCurrentDOMPosition
-  // ============================================================
-
   const getCurrentDOMPosition = useCallback((): { x: number; y: number } => {
     if (!windowRef.current) {
       return { x: window.position?.x || 100, y: window.position?.y || 100 };
@@ -109,64 +111,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     // Fallback to store position
     return { x: window.position?.x || 100, y: window.position?.y || 100 };
   }, [window.position]);
-
-  // ============================================================
-  // OPRAVENÁ handleMouseDown FUNKCE
-  // ============================================================
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Don't drag when clicking control buttons
-    const target = e.target as HTMLElement;
-    if (target.classList.contains('window-control') || target.closest('.window-controls')) {
-      return;
-    }
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('🎯 Starting drag for window:', window.id);
-    
-    // Bring to front immediately
-    onBringToFront(window.id);
-    
-    // *** KLÍČOVÁ OPRAVA *** - použij DOM pozici místo store pozice
-    const currentPos = getCurrentDOMPosition();
-    const startX = currentPos.x;
-    const startY = currentPos.y;
-    
-    // Validate starting position
-    const validStartX = typeof startX === 'number' && !isNaN(startX) ? startX : 100;
-    const validStartY = typeof startY === 'number' && !isNaN(startY) ? startY : 100;
-    
-    console.log('📍 Drag starting from validated DOM position:', { x: validStartX, y: validStartY });
-    
-    // Initialize drag state with DOM position
-    dragStateRef.current = {
-      isDragging: true,
-      startX: e.clientX,
-      startY: e.clientY,
-      windowStartX: validStartX,  // *** OPRAVA *** - DOM pozice místo store
-      windowStartY: validStartY,  // *** OPRAVA *** - DOM pozice místo store
-      finalX: validStartX,
-      finalY: validStartY
-    };
-    
-    onDragStateChange(true);
-    
-    // Add dragging class for visual feedback
-    if (windowRef.current) {
-      windowRef.current.classList.add('window--dragging');
-    }
-    
-    // Attach global listeners
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    
-  }, [window.id, getCurrentDOMPosition, onBringToFront, onDragStateChange]);
-
-  // ============================================================
-  // PŘIDANÉ CHYBĚJÍCÍ MOUSE HANDLERS
-  // ============================================================
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!dragStateRef.current.isDragging) return;
@@ -212,23 +156,124 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     if (windowRef.current) {
       windowRef.current.classList.remove('window--dragging');
     }
-  }, [window.id, window.position, onPositionChange, onDragStateChange]);
+  }, [window.id, window.position, onPositionChange, onDragStateChange, handleMouseMove]);
 
-  // ============================================================
-  // OPRAVENÝ SYNC USEEFFECT - BEZ FUNCTION DEPENDENCIES 🔧
-  // ============================================================
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Don't drag when clicking control buttons
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('window-control') || target.closest('.window-controls')) {
+      return;
+    }
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🎯 Starting drag for window:', window.id);
+    
+    // Bring to front immediately
+    onBringToFront(window.id);
+    
+    // *** KLÍČOVÁ OPRAVA *** - použij DOM pozici místo store pozice
+    const currentPos = getCurrentDOMPosition();
+    const startX = currentPos.x;
+    const startY = currentPos.y;
+    
+    // Validate starting position
+    const validStartX = typeof startX === 'number' && !isNaN(startX) ? startX : 100;
+    const validStartY = typeof startY === 'number' && !isNaN(startY) ? startY : 100;
+    
+    console.log('📍 Drag starting from validated DOM position:', { x: validStartX, y: validStartY });
+    
+    // Initialize drag state with DOM position
+    dragStateRef.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      windowStartX: validStartX,
+      windowStartY: validStartY,
+      finalX: validStartX,
+      finalY: validStartY
+    };
+    
+    onDragStateChange(true);
+    
+    // Add dragging class for visual feedback
+    if (windowRef.current) {
+      windowRef.current.classList.add('window--dragging');
+    }
+    
+    // Attach global listeners
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+  }, [window.id, getCurrentDOMPosition, onBringToFront, onDragStateChange, handleMouseMove, handleMouseUp]);
 
-  // NOVÝ STABILNÍ SYNC - OVERLAP FIX:
+  const getZIndex = useCallback(() => {
+    const baseZIndex = 1000;
+    
+    if (dragStateRef.current?.isDragging) {
+      return baseZIndex + 200;
+    }
+    
+    if (isActive) {
+      return baseZIndex + 100;
+    }
+    
+    const windowIndex = allWindows.findIndex(w => w.id === window.id);
+    return baseZIndex + windowIndex;
+  }, [isActive, allWindows, window.id]);
+
+  const windowStyle = useMemo(() => ({
+    position: 'absolute' as const,
+    left: 0,
+    top: 0,
+    width: window.size.width,
+    height: window.isMinimized ? 'auto' : window.size.height,
+    zIndex: getZIndex(),
+    opacity: window.isMinimized ? 0.9 : 1,
+    transition: dragStateRef.current?.isDragging ? 'none' : 'opacity 0.2s ease',
+    willChange: 'transform',
+  }), [window.size.width, window.size.height, window.isMinimized, getZIndex]);
+
+  // EFFECTS
   useEffect(() => {
-    // Skip sync during drag nebo pokud není mounted
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    console.log('🪟 DraggableWindow mounted for:', window.id, 'at position:', window.position);
+  }, [window.id]);
+
+  useEffect(() => {
+    if (windowRef.current) {
+      const storeX = window.position?.x ?? 100;
+      const storeY = window.position?.y ?? 100;
+      
+      const validX = typeof storeX === 'number' && !isNaN(storeX) ? storeX : 100;
+      const validY = typeof storeY === 'number' && !isNaN(storeY) ? storeY : 100;
+      
+      const transform = `translate(${validX}px, ${validY}px)`;
+      console.log('🏁 Applying INITIAL transform on mount:', transform, 'for window:', window.id);
+      
+      windowRef.current.style.transform = transform;
+    }
+  }, [window.id]);
+
+  // Position sync
+  useEffect(() => {
     if (dragStateRef.current.isDragging || !windowRef.current) {
       return;
     }
 
     const storePos = window.position || { x: 100, y: 100 };
     
-    // Přečti DOM pozici inline (bez function dependency)
-    let domPos = { x: storePos.x, y: storePos.y }; // fallback
+    let domPos = { x: storePos.x, y: storePos.y };
     const transform = windowRef.current.style.transform;
     if (transform && transform !== 'none') {
       const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
@@ -241,18 +286,16 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
       }
     }
     
-    // Sync POUZE pokud je VÝZNAMNÝ rozdíl (větší tolerance)
     const diffX = Math.abs(storePos.x - domPos.x);
     const diffY = Math.abs(storePos.y - domPos.y);
     
-    if (diffX > 10 || diffY > 10) {  // Větší tolerance = méně false sync
+    if (diffX > 10 || diffY > 10) {
       console.log('🔄 Major position difference, syncing:', { 
         store: storePos, 
         dom: domPos, 
         diff: { x: diffX, y: diffY }
       });
       
-      // Inline update position (bez function dependency)
       if (typeof storePos.x === 'number' && typeof storePos.y === 'number' && 
           !isNaN(storePos.x) && !isNaN(storePos.y)) {
         
@@ -273,82 +316,9 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
         dragStateRef.current.finalY = constrainedY;
       }
     }
-  }, [window.position?.x, window.position?.y, window.size?.width, window.size?.height]); 
-  // ^^^^ POUZE primitive values, žádné funkce = stabilní!
+  }, [window.position?.x, window.position?.y, window.size?.width, window.size?.height]);
 
-  // Cleanup listeners on unmount
-  useEffect(() => {
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
-  // Only log on mount, not on every render
-  useEffect(() => {
-    console.log('🪟 DraggableWindow mounted for:', window.id, 'at position:', window.position);
-  }, [window.id]); // Only depend on window.id, not position
-
-  // ============================================================
-  // 🔧 NOVÝ DYNAMICKÝ Z-INDEX SYSTÉM
-  // ============================================================
-
-  // Get all windows for z-index calculation
-  const allWindows = useGameStore((state) => state.windows);
-
-  const getZIndex = useCallback(() => {
-    const baseZIndex = 1000;
-    
-    if (dragStateRef.current?.isDragging) {
-      return baseZIndex + 200;  // Dragging = highest
-    }
-    
-    if (isActive) {
-      return baseZIndex + 100;  // Active = high
-    }
-    
-    // Window order index for stable layering
-    const windowIndex = allWindows.findIndex(w => w.id === window.id);
-    return baseZIndex + windowIndex;
-  }, [isActive, allWindows, window.id]);
-
-  // ============================================================
-  // WINDOW STYLE S DYNAMICKÝM Z-INDEX
-  // ============================================================
-
-  const windowStyle = useMemo(() => ({
-    position: 'absolute' as const,
-    left: 0,
-    top: 0,
-    width: window.size.width,
-    height: window.isMinimized ? 'auto' : window.size.height,
-    zIndex: getZIndex(),  // 🔧 Dynamický z-index místo static
-    opacity: window.isMinimized ? 0.9 : 1,
-    transition: dragStateRef.current?.isDragging ? 'none' : 'opacity 0.2s ease',
-    willChange: 'transform',
-  }), [window.size.width, window.size.height, window.isMinimized, getZIndex]);
-
-  // Apply initial position ONLY when component mounts, not on every position change
-  useEffect(() => {
-    if (windowRef.current) {
-      // Validate position from store
-      const storeX = window.position?.x ?? 100;
-      const storeY = window.position?.y ?? 100;
-      
-      const validX = typeof storeX === 'number' && !isNaN(storeX) ? storeX : 100;
-      const validY = typeof storeY === 'number' && !isNaN(storeY) ? storeY : 100;
-      
-      const transform = `translate(${validX}px, ${validY}px)`;
-      console.log('🏁 Applying INITIAL transform on mount:', transform, 'for window:', window.id);
-      
-      windowRef.current.style.transform = transform;
-    }
-  }, [window.id]); // ONLY depend on window.id (mount), not position
-
-  if (!window.isVisible || window.isMinimized) {
+  if (!window.isVisible) {
     return null;
   }
 
@@ -360,7 +330,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
       onClick={(e) => {
         e.stopPropagation();
         
-        // 🔧 OVERLAP FIX - Guard pro už aktivní okna
         if (isActive) {
           console.log('💭 Window already active, skipping bringToFront:', window.id);
           return;
@@ -381,7 +350,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
             {getWindowIcon(window.type)}
           </div>
           <h3 className="window-title">{window.title}</h3>
-          {/* Debug position info */}
           {process.env.NODE_ENV === 'development' && (
             <span style={{ 
               fontSize: '10px', 
@@ -420,11 +388,10 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
       
       {!window.isMinimized && (
         <div className="window-content" onClick={(e) => e.stopPropagation()}>
-          {renderWindowContent(window.type)}
+          {renderWindowContent(window.type, selectedProvince, gameData, playerData)}
         </div>
       )}
       
-      {/* Resize Handle */}
       {!window.isMinimized && (
         <div className="window-resize-handle" title="Přetáhni pro změnu velikosti">
           ⋱
@@ -433,7 +400,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if these specific props change
   return (
     prevProps.window.id === nextProps.window.id &&
     prevProps.window.size.width === nextProps.window.size.width &&
@@ -442,7 +408,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = React.memo(({
     prevProps.window.isVisible === nextProps.window.isVisible &&
     prevProps.window.title === nextProps.window.title &&
     prevProps.isActive === nextProps.isActive
-    // Specifically NOT comparing window.position to avoid re-renders during drag
   );
 });
 
@@ -463,14 +428,15 @@ const getWindowIcon = (type: string): string => {
 };
 
 // ============================================================
-// WINDOW CONTENT RENDERER
+// ✅ OPRAVENÁ renderWindowContent - BEZ HOOKS, S PARAMETRY
 // ============================================================
 
-const renderWindowContent = (type: string) => {
-  const selectedProvince = useGameStore((state) => state.selectedProvince);
-  const gameData = useGameStore((state) => state.gameData);
-  const playerData = useGameStore((state) => state.playerData);
-  
+const renderWindowContent = (
+  type: string, 
+  selectedProvince: any, 
+  gameData: any, 
+  playerData: any
+) => {
   switch (type) {
     case 'inventory':
       return (
@@ -512,6 +478,33 @@ const renderWindowContent = (type: string) => {
           <div className="inventory-actions">
             <button className="inventory-btn">🏪 Obchodovat</button>
             <button className="inventory-btn">📦 Použít předmět</button>
+          </div>
+        </div>
+      );
+
+    case 'army-detail':
+      const armyData = gameData?.['Severní království'] || { OFF: 0, DEFF: 0, SIEGE: 0, SPEC: 0 };
+      return (
+        <div className="window-content-army">
+          <div className="army-header">
+            <h4>⚔️ Armáda: Severní království</h4>
+            <div className="army-summary">Celková síla: 847</div>
+          </div>
+          <div className="army-units">
+            <div className="army-unit-group">
+              <div className="unit-group-name">Severní království</div>
+              <div className="unit-stats">
+                <div className="unit-stat">⚔️ {armyData.OFF}</div>
+                <div className="unit-stat">🛡️ {armyData.DEFF}</div>
+                <div className="unit-stat">🏰 {armyData.SIEGE}</div>
+                <div className="unit-stat">🎯 {armyData.SPEC}</div>
+              </div>
+            </div>
+          </div>
+          <div className="army-actions">
+            <button className="army-btn">➕ Verbovat</button>
+            <button className="army-btn">🎯 Útok</button>
+            <button className="army-btn">🏃 Pohyb</button>
           </div>
         </div>
       );
