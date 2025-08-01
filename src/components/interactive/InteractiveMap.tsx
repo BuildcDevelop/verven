@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../stores/gameStore';
 import { Province } from '../../types/game-types';
 import './styles/InteractiveMap.css';
+import ProvinceManagementPanel from './ProvinceManagementPanel';
 
 // ============================================================
 // KONSTANTY PRO MAPU
@@ -72,15 +73,24 @@ const InteractiveMap: React.FC = () => {
   const [isDragging, setIsDragging] = React.useState(false);
   const [wasDraggingInThisSession, setWasDraggingInThisSession] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
+  
+  // UI State
+  const [hoveredProvince, setHoveredProvince] = React.useState<string | null>(null);
+  const [keyboardHints, setKeyboardHints] = React.useState<string | null>(null);
+  const [managementPanel, setManagementPanel] = React.useState<{
+    provinceName: string;
+    coordinates: { x: number; y: number };
+    position: { x: number; y: number };
+  } | null>(null);
 
   // ============================================================
   // MAP CONTROL HANDLERS
   // ============================================================
-
+  
   const handleZoomIn = useCallback(() => {
     setMapZoom(Math.min(mapZoom + 0.2, 3));
   }, [mapZoom, setMapZoom]);
-
+  
   const handleZoomOut = useCallback(() => {
     setMapZoom(Math.max(mapZoom - 0.2, 0.5));
   }, [mapZoom, setMapZoom]);
@@ -102,10 +112,52 @@ const InteractiveMap: React.FC = () => {
       mapContentRef.current.style.transform = `translate(${newPosition.x}px, ${newPosition.y}px) scale(${mapZoom})`;
     }
   }, [setMapPosition, mapZoom]);
-
+  
   const switchUnitType = useCallback(() => {
     setCurrentUnitType((currentUnitType + 1) % unitTypes.length);
   }, [currentUnitType, setCurrentUnitType]);
+
+  // ============================================================
+  // PROVINCE MANAGEMENT HANDLERS
+  // ============================================================
+  
+  const handleOwnProvinceClick = useCallback((e: React.MouseEvent, provinceName: string) => {
+    if (!isDragging && !wasDraggingInThisSession) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Získej pozici provincie pro výpočet souřadnic
+      const allProvinces = [...Object.keys(gameData), ...Object.keys(playerData)];
+      const provinceIndex = allProvinces.indexOf(provinceName);
+      const provincePosition = getProvincePosition(provinceIndex, allProvinces.length, GRID_SIZE);
+      
+      // Vypočítej pozici panelu (trochu vpravo od provincie)
+      const rect = mapContainerRef.current?.getBoundingClientRect();
+      const panelPosition = {
+        x: Math.min(window.innerWidth - 450, (rect?.left || 0) + mapPosition.x + 300), // OPRAVENO: mapPosition.x
+        y: Math.max(20, (rect?.top || 0) + mapPosition.y - 50) // OPRAVENO: mapPosition.y
+      };
+      
+      setManagementPanel({
+        provinceName,
+        coordinates: { x: provincePosition.x, y: provincePosition.y },
+        position: panelPosition
+      });
+      
+      // Audio feedback
+      setKeyboardHints(`🏰 Správa: ${provinceName}`);
+      setTimeout(() => setKeyboardHints(null), 2000);
+    }
+  }, [isDragging, wasDraggingInThisSession, gameData, playerData, mapPosition]);
+
+  const handleCloseManagementPanel = useCallback(() => {
+    setManagementPanel(null);
+  }, []);
+
+  const handleExpandedDetail = useCallback(() => {
+    console.log('🔍 Rozšířený detail bude implementován později');
+    // Zde bude logika pro otevření detailního okna
+  }, []);
 
   // ============================================================
   // DRAG AND DROP HANDLERS
@@ -163,10 +215,10 @@ const InteractiveMap: React.FC = () => {
   }, []);
 
   const handleProvinceClick = useCallback((e: React.MouseEvent, provinceName: string, provinceType: string) => {
-  if (!isDragging && !wasDraggingInThisSession) {
-    e.preventDefault(); // Přidej toto - zabrání kontextovému menu
-    e.stopPropagation();
-      
+    if (!isDragging && !wasDraggingInThisSession) {
+      e.preventDefault(); // Zabrání kontextovému menu
+      e.stopPropagation();
+        
       // Vytvoř mock provincii pro demonstraci
       const allProvinces = [...Object.keys(gameData), ...Object.keys(playerData)];
       const provinceIndex = allProvinces.indexOf(provinceName);
@@ -203,15 +255,13 @@ const InteractiveMap: React.FC = () => {
   const hideProvinceDetail = useCallback(() => {
     if (!isDragging && !wasDraggingInThisSession) {
       setSelectedProvince(null);
+      setManagementPanel(null); // Zavře také management panel
     }
   }, [isDragging, wasDraggingInThisSession, setSelectedProvince]);
 
   // ============================================================
   // ENHANCED KEYBOARD CONTROLS + TOOLTIPS
   // ============================================================
-
-  const [hoveredProvince, setHoveredProvince] = React.useState<string | null>(null);
-  const [keyboardHints, setKeyboardHints] = React.useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -249,6 +299,7 @@ const InteractiveMap: React.FC = () => {
           break;
         case 'escape':
           setSelectedProvince(null);
+          setManagementPanel(null); // Zavře také management panel
           setKeyboardHints('❌ Detail zavřen');
           setTimeout(() => setKeyboardHints(null), 1500);
           break;
@@ -311,9 +362,11 @@ const InteractiveMap: React.FC = () => {
           transform: hoveredProvince === name ? 'scale(1.08)' : 'scale(1)',
           zIndex: hoveredProvince === name ? 10 : selectedProvince?.name === name ? 8 : 1
         }}
-        // Pravé tlačítko myši pro detail provincie
+        // Levé tlačítko pro vlastní državy = management panel
+        onClick={type === 'own' ? (e) => handleOwnProvinceClick(e, name) : undefined}
+        // Pravé tlačítko pro detail provincie
         onContextMenu={(e) => handleProvinceClick(e, name, type)}
-        title={`${name} (Pravé tlačítko pro detail)`}
+        title={type === 'own' ? `${name} (Levé klik = správa, pravé = detail)` : `${name} (Pravé tlačítko pro detail)`}
         onMouseEnter={() => handleProvinceHover(name, true)}
         onMouseLeave={() => handleProvinceHover(name, false)}
       >
@@ -407,7 +460,7 @@ const InteractiveMap: React.FC = () => {
         )}
       </div>
     );
-  }, [gameData, playerData, currentUnitType, selectedProvince, handleProvinceClick]);
+  }, [gameData, playerData, currentUnitType, selectedProvince, hoveredProvince, handleProvinceClick, handleOwnProvinceClick]);
 
   // ============================================================
   // ENHANCED WHEEL ZOOM WITH MOUSE POSITION
@@ -570,6 +623,7 @@ const InteractiveMap: React.FC = () => {
           ))}
         </div>
       </div>
+
       {/* Unit Type Indicator - MOVED TO TOP */}
       <div className="unit-type-panel" style={{
         position: 'absolute',
@@ -614,6 +668,7 @@ const InteractiveMap: React.FC = () => {
           Scrolluj kolečkem pro změnu typu (klávesa S)
         </div>
       </div>
+
       {/* Map Controls */}
       <div className="map-controls" style={{
         position: 'absolute',
@@ -987,7 +1042,8 @@ const InteractiveMap: React.FC = () => {
           </div>
           <div>• <strong>Drag & Drop</strong> - pohyb po mapě</div>
           <div>• <strong>Kolečko myši</strong> - zoom na pozici kurzoru</div>
-          <div>• <strong>Klik na provincii</strong> - zobrazit detaily</div>
+          <div>• <strong>Levé klik</strong> - správa vlastní državy</div>
+          <div>• <strong>Pravé klik</strong> - detail provincie</div>
           <div style={{ marginTop: '4px' }}>
             <strong>Klávesy:</strong> <kbd style={{
               background: 'rgba(255, 255, 255, 0.1)',
@@ -1008,6 +1064,17 @@ const InteractiveMap: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Province Management Panel - SPRÁVNĚ UMÍSTĚNÝ */}
+      {managementPanel && (
+        <ProvinceManagementPanel
+          provinceName={managementPanel.provinceName}
+          coordinates={managementPanel.coordinates}
+          position={managementPanel.position}
+          onClose={handleCloseManagementPanel}
+          onExpandedDetail={handleExpandedDetail}
+        />
+      )}
 
       {/* CSS Animations Injection */}
       <style>{`
