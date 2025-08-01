@@ -163,8 +163,9 @@ const InteractiveMap: React.FC = () => {
   }, []);
 
   const handleProvinceClick = useCallback((e: React.MouseEvent, provinceName: string, provinceType: string) => {
-    if (!isDragging && !wasDraggingInThisSession) {
-      e.stopPropagation();
+  if (!isDragging && !wasDraggingInThisSession) {
+    e.preventDefault(); // Přidej toto - zabrání kontextovému menu
+    e.stopPropagation();
       
       // Vytvoř mock provincii pro demonstraci
       const allProvinces = [...Object.keys(gameData), ...Object.keys(playerData)];
@@ -310,8 +311,9 @@ const InteractiveMap: React.FC = () => {
           transform: hoveredProvince === name ? 'scale(1.08)' : 'scale(1)',
           zIndex: hoveredProvince === name ? 10 : selectedProvince?.name === name ? 8 : 1
         }}
-        onClick={(e) => handleProvinceClick(e, name, type)}
-        title={`${name} (Klik pro detail)`}
+        // Pravé tlačítko myši pro detail provincie
+        onContextMenu={(e) => handleProvinceClick(e, name, type)}
+        title={`${name} (Pravé tlačítko pro detail)`}
         onMouseEnter={() => handleProvinceHover(name, true)}
         onMouseLeave={() => handleProvinceHover(name, false)}
       >
