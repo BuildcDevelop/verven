@@ -122,33 +122,32 @@ const InteractiveMap: React.FC = () => {
   // ============================================================
   
   const handleOwnProvinceClick = useCallback((e: React.MouseEvent, provinceName: string) => {
-    if (!isDragging && !wasDraggingInThisSession) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Získej pozici provincie pro výpočet souřadnic
-      const allProvinces = [...Object.keys(gameData), ...Object.keys(playerData)];
-      const provinceIndex = allProvinces.indexOf(provinceName);
-      const provincePosition = getProvincePosition(provinceIndex, allProvinces.length, GRID_SIZE);
-      
-      // Vypočítej pozici panelu (trochu vpravo od provincie)
-      const rect = mapContainerRef.current?.getBoundingClientRect();
-      const panelPosition = {
-        x: Math.min(window.innerWidth - 450, (rect?.left || 0) + mapPosition.x + 300), // OPRAVENO: mapPosition.x
-        y: Math.max(20, (rect?.top || 0) + mapPosition.y - 50) // OPRAVENO: mapPosition.y
-      };
-      
-      setManagementPanel({
-        provinceName,
-        coordinates: { x: provincePosition.x, y: provincePosition.y },
-        position: panelPosition
-      });
-      
-      // Audio feedback
-      setKeyboardHints(`🏰 Správa: ${provinceName}`);
-      setTimeout(() => setKeyboardHints(null), 2000);
-    }
-  }, [isDragging, wasDraggingInThisSession, gameData, playerData, mapPosition]);
+  if (!isDragging && !wasDraggingInThisSession) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Získej pozici provincie pro výpočet souřadnic
+    const allProvinces = [...Object.keys(gameData), ...Object.keys(playerData)];
+    const provinceIndex = allProvinces.indexOf(provinceName);
+    const provincePosition = getProvincePosition(provinceIndex, allProvinces.length, GRID_SIZE);
+    
+    // Panel vycentrovaný dole na obrazovce - OPRAVENO
+    const panelPosition = {
+  x: window.innerWidth / 2 - 400, // Střed mínus polovina šířky panelu  
+  y: window.innerHeight - 20 // Jen 20px od spodního okraje
+};
+    
+    setManagementPanel({
+      provinceName,
+      coordinates: { x: provincePosition.x, y: provincePosition.y },
+      position: panelPosition
+    });
+    
+    // Audio feedback
+    setKeyboardHints(`🏰 Správa: ${provinceName}`);
+    setTimeout(() => setKeyboardHints(null), 2000);
+  }
+}, [isDragging, wasDraggingInThisSession, gameData, playerData]);
 
   const handleCloseManagementPanel = useCallback(() => {
     setManagementPanel(null);

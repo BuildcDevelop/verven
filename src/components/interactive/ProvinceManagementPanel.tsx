@@ -1,5 +1,5 @@
 // src/components/interactive/ProvinceManagementPanel.tsx
-import React from 'react';
+import React, { useMemo } from 'react'; 
 
 interface Building {
   id: string;
@@ -25,36 +25,36 @@ const ProvinceManagementPanel: React.FC<ProvinceManagementPanelProps> = ({
   onExpandedDetail
 }) => {
   // Mock budovy pro demonstraci
-  const buildings: Building[] = [
-    {
-      id: 'townhall',
-      name: 'Radnice',
-      icon: '🏛️',
-      level: Math.floor(Math.random() * 10) + 1,
-      description: 'Centrum správy državy'
-    },
-    {
-      id: 'academy',
-      name: 'Akademie',
-      icon: '📚',
-      level: Math.floor(Math.random() * 8) + 1,
-      description: 'Výzkum nových technologií'
-    },
-    {
-      id: 'barracks',
-      name: 'Kasárny',
-      icon: '⚔️',
-      level: Math.floor(Math.random() * 12) + 1,
-      description: 'Výcvik pěších jednotek'
-    },
-    {
-      id: 'stables',
-      name: 'Stáje',
-      icon: '🐎',
-      level: Math.floor(Math.random() * 8) + 1,
-      description: 'Výcvik jízdních jednotek'
-    }
-  ];
+  const buildings: Building[] = useMemo(() => [
+  {
+    id: 'townhall',
+    name: 'Radnice',
+    icon: '🏛️',
+    level: Math.floor(Math.random() * 10) + 1,
+    description: 'Centrum správy državy'
+  },
+  {
+    id: 'academy',
+    name: 'Akademie',
+    icon: '📚',
+    level: Math.floor(Math.random() * 8) + 1,
+    description: 'Výzkum nových technologií'
+  },
+  {
+    id: 'barracks',
+    name: 'Kasárny',
+    icon: '⚔️',
+    level: Math.floor(Math.random() * 12) + 1,
+    description: 'Výcvik pěších jednotek'
+  },
+  {
+    id: 'stables',
+    name: 'Stáje',
+    icon: '🐎',
+    level: Math.floor(Math.random() * 8) + 1,
+    description: 'Výcvik jízdních jednotek'
+  }
+], [provinceName]);
 
   return (
     <div
@@ -62,6 +62,7 @@ const ProvinceManagementPanel: React.FC<ProvinceManagementPanelProps> = ({
         position: 'fixed',
         left: `${position.x}px`,
         top: `${position.y}px`,
+        transform: 'translate(0, -100%)',
         background: 'linear-gradient(135deg, rgba(20, 25, 35, 0.95) 0%, rgba(30, 35, 45, 0.95) 100%)',
         border: '2px solid rgba(74, 144, 226, 0.6)',
         borderRadius: '12px',
@@ -157,7 +158,7 @@ const ProvinceManagementPanel: React.FC<ProvinceManagementPanelProps> = ({
         {/* Grid budov */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px'
         }}>
           {buildings.map((building) => (
