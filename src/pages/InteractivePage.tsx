@@ -356,26 +356,6 @@ const handleArmyManagement = (provinceName: string) => {
         <div>• C = center | S = přepnout jednotky</div>
       </div>
 
-      {/* Debug informace (pouze v developmentu) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'fixed',
-          top: '90px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: '#34d399',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          zIndex: 100,
-          border: '1px solid rgba(52, 211, 153, 0.3)'
-        }}>
-          🎮 Interactive Mode | {gameState ? 'Game State Loaded' : 'Mock Data'} | 
-          Verven v0.1.0
-        </div>
-      )}
     </div>
   );
 };
